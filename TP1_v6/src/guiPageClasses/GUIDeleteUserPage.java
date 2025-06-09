@@ -7,6 +7,7 @@ import java.util.Optional;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 
+//brandonwong
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ import databaseClasses.Database;
 import entityClasses.User;
 
 /*******
- * <p> Title: GUIAddRemoveRolesPage Class. </p>
+ * <p> Title: GUIDeleteUserPage Class. </p>
  * 
  * <p> Description: The Java/FX-based page for changing the assigned roles to users.</p>
  * 
