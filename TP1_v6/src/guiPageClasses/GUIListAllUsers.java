@@ -55,7 +55,7 @@ public class GUIListAllUsers {
 	private Database theDatabase;
 	private User theUser;
 
-
+	//THIS IS THE DEMO FOR HOW WE CAN COMMIT CHANGES TO OUR GROUP PROJECT FILE!!!!
 	/**********************************************************************************************
 
 	Constructors
