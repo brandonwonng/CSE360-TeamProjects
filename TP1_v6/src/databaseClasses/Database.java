@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import entityClasses.User;
+import entityClasses.Question; // John edit
 
 /*******
  * <p> Title: Database Class. </p>
@@ -1221,6 +1222,66 @@ public class Database {
 		
 		return String.join(", ", roles);
 	}
+
+     /******* John edit: method to add a question
+     * <p> Method: void addQuestion(String userName, String questionText) </p>
+     *
+     * <p> Description: Store a new question in the question database. The
+     *              question is marked unresolved when first added.</p>
+     */
+    public void addQuestion(String userName, String questionText) {
+        String insert = "INSERT INTO questionDB (userName, questionText, resolution) VALUES (?, ?, FALSE)";
+        try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+                pstmt.setString(1, userName);
+                pstmt.setString(2, questionText);
+                pstmt.executeUpdate();
+        } catch (SQLException e) {
+                e.printStackTrace();
+        }
+    }
+
+    /******* John edit: method to get all questions
+     * <p> Method: List<Question> getAllQuestions() </p>
+     *
+     * <p> Description: Retrieve all questions stored in the database.</p>
+     *
+     * @return a list of Question objects for all stored questions
+     */
+    public List<Question> getAllQuestions() {
+        List<Question> questions = new ArrayList<>();
+        String query = "SELECT userName, questionText, resolution FROM questionDB";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()) {
+                        Question q = new Question();
+                        User u = new User(rs.getString("userName"), "", false, false, false, false, false);
+                        q.setUser(u);
+                        q.setText(rs.getString("questionText"));
+                        q.setResolution(rs.getBoolean("resolution"));
+                        questions.add(q);
+                }
+        } catch (SQLException e) {
+                e.printStackTrace();
+        }
+        return questions;
+    }
+
+    /******* John edit: method to get questions by user
+     * <p> Method: void updateQuestionResolution(String userName, String questionText, boolean resolution)</p>
+     *
+     * <p> Description: Update the resolution state for a stored question.</p>
+     */
+    public void updateQuestionResolution(String userName, String questionText, boolean resolution) {
+        String update = "UPDATE questionDB SET resolution = ? WHERE userName = ? AND questionText = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+                pstmt.setBoolean(1, resolution);
+                pstmt.setString(2, userName);
+                pstmt.setString(3, questionText);
+                pstmt.executeUpdate();
+        } catch (SQLException e) {
+                e.printStackTrace();
+        }
+    }
 	
 	
 	/*******
