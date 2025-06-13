@@ -204,6 +204,8 @@ public class GUIStudentQuestionPage {
 	    			quest.addReply(reply);
 	    		}
     	}
+
+	loadQuestionsFromDatabase(); // John edit: load questions from the database
     	
         // Place all of the just-initialized GUI elements into the pane
         theRoot.getChildren().clear();
@@ -229,6 +231,7 @@ public class GUIStudentQuestionPage {
 	
 	public void setup(User user) {
 		theUser = user; //Clay Edit
+		loadQuestionsFromDatabase(); // John edit: load questions from the database
 		theRootPane.getChildren().clear();
 		theRootPane.getChildren().addAll(label_PageTitle,
         		questionPaneScroll,
@@ -320,14 +323,22 @@ public class GUIStudentQuestionPage {
 		System.exit(0);
 	}
 	
+	// John edit: Method to ask a question
 	private void askQuestion(String resultText) {
-    	Question q = new Question(); 
-    	q.setUser(theUser);
-    	q.setText(result.get());
-    	q.setResolution(false);
-    	System.out.println(questionSet.getNumQuestions()); //FIXME
-    	questionSet.addQuestion(q);
-    	System.out.println(questionSet.getNumQuestions());//FIXME
+	Question q = new Question();
+	q.setUser(theUser);
+	q.setText(resultText);
+	q.setResolution(false);
+	questionSet.addQuestion(q);
+	theDatabase.addQuestion(theUser.getUserName(), resultText);
+	}
+	
+	// John edit: Load questions from the database
+	private void loadQuestionsFromDatabase() {
+	   questionSet = new QuestionSet();
+	   for (Question q : theDatabase.getAllQuestions()) {
+		   questionSet.addQuestion(q);
+	   }
 	}
 	
 	private void seeAllQuestions() {
