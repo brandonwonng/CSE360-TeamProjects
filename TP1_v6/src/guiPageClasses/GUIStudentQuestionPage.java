@@ -582,6 +582,7 @@ public class GUIStudentQuestionPage {
 	        	ans.setText(result.get());
 	        	ans.setQuestion(q);
 	        	q.addReply(ans);
+	        	ans.setUser(theUser);
 //	        	unreadTracker.markAsRead(q);//Comment this out Clay
 	        }
 			dialogPostReply.getEditor().clear();
@@ -592,39 +593,36 @@ public class GUIStudentQuestionPage {
         Answer ans;
 		AnswerSet replies = q.getAnswers();
 		
+		
 		//Create line by line answer displays with one answer per line
-        Text text;
-		for(int i = 0; i < replies.getNumAnswers(); i++) {
-			ans = replies.getAnswer(i);
-    			text = new Text(ans.getText());
-    			text.setLayoutX(0);
-    			text.setLayoutY(50 + (i * 30));
-    			questionPane.getChildren().add(text);
+        for (int i = 0; i < replies.getNumAnswers(); i++) {
+            ans = replies.getAnswer(i);
+            String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
+            Text text = new Text(answerDisplay);
+            text.setLayoutX(0);
+            text.setLayoutY(50 + (i * 30));
+            questionPane.getChildren().add(text);
 
-			//NOAH EDITS
-    			//Create a "Mark as Resolved" button next to replies
-    			final Answer currentAnswer = ans;
-    			Button resolveButton = new Button("Mark as Resolved");
-    			resolveButton.setLayoutX(400);
-    			resolveButton.setLayoutY(35 + (i * 30));
-    			resolveButton.setFont(Font.font("Dialog", 12));
-    		
-    			if(ans.getAcceptance()) {
-    				resolveButton.setDisable(true);
-    				resolveButton.setText("Resolved");
-    			}
-    			else {
-    				resolveButton.setOnAction(e -> {
-    				currentAnswer.setAcceptance(true);
-    				currentAnswer.getQuestion().setResolution(true);
-    				resolveButton.setDisable(true);
-    				resolveButton.setText("Resolved");
-    			});
-    		}
-    		
-    		questionPane.getChildren().add(resolveButton);
+            final Answer currentAnswer = ans;
+            Button resolveButton = new Button("Mark as Resolved");
+            resolveButton.setLayoutX(400);
+            resolveButton.setLayoutY(35 + (i * 30));
+            resolveButton.setFont(Font.font("Dialog", 12));
 
-		 // Add PM button here
+            if (ans.getAcceptance()) {
+                resolveButton.setDisable(true);
+                resolveButton.setText("Resolved");
+            } else {
+                resolveButton.setOnAction(e -> {
+                    currentAnswer.setAcceptance(true);
+                    currentAnswer.getQuestion().setResolution(true);
+                    resolveButton.setDisable(true);
+                    resolveButton.setText("Resolved");
+                });
+            }
+            questionPane.getChildren().add(resolveButton);
+
+            // Add PM button here
             Button pmButton = new Button("Private Message");
             pmButton.setFont(Font.font("Dialog", 12));
             pmButton.setLayoutX(300);
@@ -669,11 +667,11 @@ public class GUIStudentQuestionPage {
                         pmText.setLayoutY(offset);
                         offset += 20;
                         questionPane.getChildren().add(pmText);
-                    				}
-                			}
-            			}
+                    }
+                }
+            }
 
-		}
-		
-	}
+        }
+
+}
 }
