@@ -177,7 +177,7 @@ public class GUIStudentQuestionPage {
 		});
 
 		setupButtonUI(button_ViewRecentQuestions, "Dialog", 18, 150, 
-			    Pos.CENTER, 20, 310); // Adjust Y as needed based on layout
+			    Pos.CENTER, 20, 350); // Adjust Y as needed based on layout
 		button_ViewRecentQuestions.setOnAction((event) -> {seeRecentQuestions();});
 		
         setupButtonUI(button_BackToStudentHomePage, "Dialog", 18, 300, 
