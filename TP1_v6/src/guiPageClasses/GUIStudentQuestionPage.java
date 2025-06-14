@@ -474,15 +474,21 @@ public class GUIStudentQuestionPage {
         questionPane.getChildren().clear();
 	    Text text;
 	    Button button;
+		
+		// Initialize the dialog box for modifying the question
+		TextInputDialog dialogUpdateQuestion = new TextInputDialog();
+		dialogUpdateQuestion.setTitle("Update your question");
+		dialogUpdateQuestion.setHeaderText("Update your question");
+		
 	    System.out.println(String.format("%s", theUser.getUserName()));
 		QuestionSet userSet = questionSet.filterQuestions(theUser);
 				
-		for(int i = 0; i < userSet.getNumQuestions(); i++) {
-		                quest = userSet.getQuestion(i);
+		for(int i = 0; i < 2 * userSet.getNumQuestions(); i = i+2) {
+		                quest = userSet.getQuestion(i/2);
 		    int unread = unreadTracker.getUnreadCount(quest);
-		                text = new Text(quest.getText() + " (" + unread + " new)");
-		        text.setLayoutX(100);
-		        text.setLayoutY(23 + (i * 30));
+		                text = new Text("(" + unread + " new) " + quest.getText() );
+		        text.setLayoutX(10);
+		        text.setLayoutY(23 + ((i+1) * 30));
 			
 			//See replies button
 		        button = new Button("See Replies");
@@ -494,14 +500,19 @@ public class GUIStudentQuestionPage {
 		        });
 			
 			//Modify Question Button
-			modifyButton = new Button("Update Question");
-		        setupButtonUI(button, "Dialog", 10, 0,
-		                Pos.CENTER, 30, 10 + (i * 30));
-		        button.setOnAction((event) -> {
-		                Button but = (Button) event.getSource();
-		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/30));
-		        });
-			
+			 
+			Button modifyButton = new Button("Update Question");
+		        setupButtonUI(modifyButton, "Dialog", 10, 0,
+		                Pos.CENTER, 80, 10 + (i * 30));
+		        modifyButton.setOnAction((event) -> {result = dialogUpdateQuestion.showAndWait();
+			if(result.isPresent()) {
+				//If there is text in the dialog box, the chosen question will have its text modified
+	        	Button but = (Button) event.getSource();
+    			Question q = questionSet.getQuestion(((int)but.getLayoutY()/60));
+				q.setText(result.get());
+				seeMyAll();
+		        }});
+		        dialogUpdateQuestion.getEditor().clear();
 		        questionPane.getChildren().addAll(text, button, modifyButton);
 		        }
 	}
