@@ -58,6 +58,7 @@ public class GUIStudentQuestionPage {
 	Button button_postQuestion = new Button("Ask a new Question");
 	
 	private Button button_ViewUnresolved = new Button("View All Unresolved Questions");
+	private Button button_ViewMyAll = new Button("View All of My Questions");
     	private Button button_ViewMyUnresolved = new Button("View My Unresolved Questions");
 	private Button button_ViewResolved = new Button("View All Resolved Questions");
 	
@@ -154,6 +155,10 @@ public class GUIStudentQuestionPage {
         	setupButtonUI(button_ViewMyUnresolved, "Dialog", 18, 210,
                 Pos.CENTER, 20, 270);
         	button_ViewMyUnresolved.setOnAction((event) -> {seeMyUnresolved();});
+
+		setupButtonUI(button_ViewMyAll, "Dialog", 18, 210,
+                Pos.CENTER, 20, 310);
+        	button_ViewMyAll.setOnAction((event) -> {seeMyAll();});
 		
 		// Initialize the dialog box for inputting answers/responses
 		TextInputDialog dialogAskQuestion = new TextInputDialog();
@@ -183,7 +188,7 @@ public class GUIStudentQuestionPage {
         //fill the answer set as well
         
     	//FIXME: For loop for testing purposes, creates the questions
-    	for(int i = 0; i< 10; i++) {
+    	for(int i = 0; i< 3; i++) { //Clay edit I was going to remove all of these but didnt incase anyone is still using them for testing
     		quest = new Question();
     		quest.setText(String.format("This is intended to simulate a very long question that someone may have because I want to see if the text wraps or keeps going in a line %d", i));
     		quest.setUser(theUser);
@@ -191,7 +196,7 @@ public class GUIStudentQuestionPage {
     		questionSet.addQuestion(quest);
     	}
     	//FIXME: For loop for testing purposes, creates the resolved questions with a set of answers
-    	for(int i = 0; i< 10; i++) {
+    	for(int i = 0; i< 3; i++) {
     		quest = new Question();
     		quest.setText(String.format("RESOLVED QUESTION TEST:This is intended to simulate a very long question that someone may have because I want to see if the text wraps or keeps going in a line %d", i));
     		quest.setUser(theUser);
@@ -217,6 +222,7 @@ public class GUIStudentQuestionPage {
         		button_ViewUnresolved,
 			button_ViewResolved,
                 	button_ViewMyUnresolved,
+			button_ViewMyAll,
         		line_Separator4,
         		line_Separator1,
         		button_postQuestion,
@@ -241,6 +247,7 @@ public class GUIStudentQuestionPage {
         		button_ViewUnresolved,
 			button_ViewResolved,
                 	button_ViewMyUnresolved,
+			button_ViewMyAll,
         		line_Separator4,
         		line_Separator1,
         		button_postQuestion,
@@ -458,6 +465,44 @@ public class GUIStudentQuestionPage {
 		                viewQuestionAnswers(questionSubSet.getQuestion((int)but.getLayoutY()/30));
 		        });
 		        questionPane.getChildren().addAll(text, button);
+		        }
+	}
+	//Clay Edit, I felt it would be easier to implement story 7 if there was a button to view all of the questions a user asked
+	private void seeMyAll() {
+        /*Display all of the questions that a user asked*/
+
+        questionPane.getChildren().clear();
+	    Text text;
+	    Button button;
+	    System.out.println(String.format("%s", theUser.getUserName()));
+		QuestionSet userSet = questionSet.filterQuestions(theUser);
+				
+		for(int i = 0; i < userSet.getNumQuestions(); i++) {
+		                quest = userSet.getQuestion(i);
+		    int unread = unreadTracker.getUnreadCount(quest);
+		                text = new Text(quest.getText() + " (" + unread + " new)");
+		        text.setLayoutX(100);
+		        text.setLayoutY(23 + (i * 30));
+			
+			//See replies button
+		        button = new Button("See Replies");
+		        setupButtonUI(button, "Dialog", 10, 0,
+		                Pos.CENTER, 0, 10 + (i * 30));
+		        button.setOnAction((event) -> {
+		                Button but = (Button) event.getSource();
+		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/30));
+		        });
+			
+			//Modify Question Button
+			modifyButton = new Button("Update Question");
+		        setupButtonUI(button, "Dialog", 10, 0,
+		                Pos.CENTER, 30, 10 + (i * 30));
+		        button.setOnAction((event) -> {
+		                Button but = (Button) event.getSource();
+		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/30));
+		        });
+			
+		        questionPane.getChildren().addAll(text, button, modifyButton);
 		        }
 	}
 
