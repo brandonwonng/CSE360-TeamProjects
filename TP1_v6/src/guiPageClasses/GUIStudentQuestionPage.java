@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -18,6 +19,7 @@ import entityClasses.Question;
 import entityClasses.QuestionSet;
 import entityClasses.Answer;
 import entityClasses.AnswerSet;
+import entityClasses.PrivateMessage;
 import javafx.scene.text.*;
 import utilityClasses.UnreadAnswerTracker; // added for tracking unread answers
 
