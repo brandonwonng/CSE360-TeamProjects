@@ -496,7 +496,7 @@ public class GUIStudentQuestionPage {
 		                Pos.CENTER, 0, 10 + (i * 30));
 		        button.setOnAction((event) -> {
 		                Button but = (Button) event.getSource();
-		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/30));
+		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/60));
 		        });
 			
 			//Modify Question Button
@@ -509,10 +509,12 @@ public class GUIStudentQuestionPage {
 				//If there is text in the dialog box, the chosen question will have its text modified
 	        	Button but = (Button) event.getSource();
     			Question q = questionSet.getQuestion(((int)but.getLayoutY()/60));
+				theDatabase.updateQuestionText(q.getUser().getUserName(), q.getText(), result.get());
 				q.setText(result.get());
 				seeMyAll();
+				dialogUpdateQuestion.getEditor().clear();
 		        }});
-		        dialogUpdateQuestion.getEditor().clear();
+		        
 		        questionPane.getChildren().addAll(text, button, modifyButton);
 		        }
 	}
