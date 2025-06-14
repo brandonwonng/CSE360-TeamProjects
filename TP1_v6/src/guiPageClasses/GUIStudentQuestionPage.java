@@ -58,6 +58,7 @@ public class GUIStudentQuestionPage {
 	Button button_postQuestion = new Button("Ask a new Question");
 	
 	private Button button_ViewUnresolved = new Button("View All Unresolved Questions");
+	private Button button_ViewRecentQuestions = new Button("Recently Asked Questions");
 	private Button button_ViewMyAll = new Button("View All of My Questions");
     	private Button button_ViewMyUnresolved = new Button("View My Unresolved Questions");
 	private Button button_ViewResolved = new Button("View All Resolved Questions");
@@ -172,6 +173,10 @@ public class GUIStudentQuestionPage {
 			askQuestion(result.get());}
 		dialogAskQuestion.getEditor().clear();
 		});
+
+		setupButtonUI(button_ViewRecentQuestions, "Dialog", 18, 150, 
+			    Pos.CENTER, 20, 310); // Adjust Y as needed based on layout
+		button_ViewRecentQuestions.setOnAction((event) -> {seeRecentQuestions();});
 		
         setupButtonUI(button_BackToStudentHomePage, "Dialog", 18, 300, 
         		Pos.CENTER, WINDOW_WIDTH/2-150, 475);
@@ -222,6 +227,7 @@ public class GUIStudentQuestionPage {
         		button_ViewUnresolved,
 			button_ViewResolved,
                 	button_ViewMyUnresolved,
+			button_ViewRecentQuestions,
 			button_ViewMyAll,
         		line_Separator4,
         		line_Separator1,
@@ -247,6 +253,7 @@ public class GUIStudentQuestionPage {
         		button_ViewUnresolved,
 			button_ViewResolved,
                 	button_ViewMyUnresolved,
+			button_ViewRecentQuestions,
 			button_ViewMyAll,
         		line_Separator4,
         		line_Separator1,
@@ -519,6 +526,34 @@ public class GUIStudentQuestionPage {
 		        }
 	}
 
+	private void seeRecentQuestions() {
+	    questionPane.getChildren().clear();
+	    Text text;
+	    Button button;
+
+	    int total = questionSet.getNumQuestions();
+	    int start = Math.max(0, total - 5); // Start index for last 5 questions
+
+	    for (int i = start; i < total; i++) {
+	        quest = questionSet.getQuestion(i);
+	        int displayIndex = i - start; // reset layout index to avoid overlap
+
+	        text = new Text(quest.getText());
+	        text.setLayoutX(100);
+	        text.setLayoutY(23 + (displayIndex * 30));
+
+	        button = new Button("See Replies");
+	        setupButtonUI(button, "Dialog", 10, 0, Pos.CENTER, 0, 10 + (displayIndex * 30));
+	        button.setOnAction((event) -> {
+	            Button but = (Button) event.getSource();
+	            viewQuestionAnswers(quest); // we already have `quest` from this loop
+	        });
+
+	        questionPane.getChildren().addAll(text, button);
+	    }
+	}
+
+	
 	
 	private void viewQuestionAnswers(Question q) {
 		/*This method allows an user to view all of the answers to a given question
@@ -586,7 +621,58 @@ public class GUIStudentQuestionPage {
     		}
     		
     		questionPane.getChildren().add(resolveButton);
-    		}
+
+		 // Add PM button here
+            Button pmButton = new Button("Private Message");
+            pmButton.setFont(Font.font("Dialog", 12));
+            pmButton.setLayoutX(300);
+            pmButton.setLayoutY(35 + (i * 30));
+
+            if (currentAnswer.getUser() != null ||
+                !currentAnswer.getUser().getUserName().equals(theUser.getUserName())) {
+            	pmButton.setOnAction(event -> {
+            	    TextInputDialog pmDialog = new TextInputDialog();
+            	    pmDialog.setTitle("Private Message");
+            	    pmDialog.setHeaderText("Send a private message to " + currentAnswer.getUser().getUserName());
+
+            	    Optional<String> pmResult = pmDialog.showAndWait();
+
+            	    pmResult.ifPresent(msg -> {
+            	        // Simulate sending the message (or store it later)
+            	    	currentAnswer.addPrivateMessage(new PrivateMessage(theUser, msg));
+
+            	        // Show confirmation popup
+            	        Alert confirmation = new Alert(Alert.AlertType.INFORMATION);
+            	        confirmation.setTitle("Message Sent");
+            	        confirmation.setHeaderText(null);
+            	        confirmation.setContentText("Your private message was sent to " + currentAnswer.getUser().getUserName() + ".");
+            	        confirmation.showAndWait();
+            	    });
+            	});
+
+
+            }
+            questionPane.getChildren().add(pmButton);
+         // Display private messages, only visible to sender or answer owner
+            if (currentAnswer.getPrivateMessages() != null) {
+                int offset = 50 + (i * 30) + 20; // below the answer text
+
+                for (PrivateMessage pm : currentAnswer.getPrivateMessages()) {
+                    boolean isSender = pm.getSender().getUserName().equals(theUser.getUserName());
+                    boolean isRecipient = currentAnswer.getUser().getUserName().equals(theUser.getUserName());
+
+                    if (isSender || isRecipient) {
+                        Text pmText = new Text("[Private from " + pm.getSender().getUserName() + "]: " + pm.getContent());
+                        pmText.setLayoutX(30); // indent from left edge
+                        pmText.setLayoutY(offset);
+                        offset += 20;
+                        questionPane.getChildren().add(pmText);
+                    				}
+                			}
+            			}
+
+        		}
+		}
 		
 	}
 }
