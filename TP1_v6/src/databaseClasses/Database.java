@@ -1282,7 +1282,18 @@ public class Database {
                 e.printStackTrace();
         }
     }
-	
+	//Clay Edit
+    public void updateQuestionText(String userName, String questionText, String newQuestion) {
+        String update = "UPDATE questionDB SET questionText = ? WHERE userName = ? AND questionText = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+                pstmt.setString(1, newQuestion);
+                pstmt.setString(2, userName);
+                pstmt.setString(3, questionText);
+                pstmt.executeUpdate();
+        } catch (SQLException e) {
+                e.printStackTrace();
+        }
+    }
 	
 	/*******
 	 * <p> Debugging method</p>
