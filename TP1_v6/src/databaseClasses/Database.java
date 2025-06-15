@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import entityClasses.User;
 import entityClasses.Question; // John edit
+import entityClasses.Answer; // John edit
 
 /*******
  * <p> Title: Database Class. </p>
@@ -125,6 +126,16 @@ public class Database {
 						+ "questionText VARCHAR(255), "
 						+ "resolution BOOL DEFAULT FALSE)";
 				statement.execute(questionTable);
+
+	// John edit: Table for storing answers to questions
+        String answerTable = "CREATE TABLE IF NOT EXISTS answerDB ("
+                        + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                        + "questionUserName VARCHAR(255), "
+                        + "questionText VARCHAR(255), "
+                        + "answerUserName VARCHAR(255), "
+                        + "answerText VARCHAR(255), "
+                        + "acceptance BOOL DEFAULT FALSE)";
+        statement.execute(answerTable);
 				
 		// Create the invitation codes table
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
@@ -1251,15 +1262,22 @@ public class Database {
         List<Question> questions = new ArrayList<>();
         String query = "SELECT userName, questionText, resolution FROM questionDB";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-                ResultSet rs = pstmt.executeQuery();
-                while (rs.next()) {
-                        Question q = new Question();
-                        User u = new User(rs.getString("userName"), "", false, false, false, false, false);
-                        q.setUser(u);
-                        q.setText(rs.getString("questionText"));
-                        q.setResolution(rs.getBoolean("resolution"));
-                        questions.add(q);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Question q = new Question();
+                User u = new User(rs.getString("userName"), "", false, false, false, false, false);
+                q.setUser(u);
+                q.setText(rs.getString("questionText"));
+                q.setResolution(rs.getBoolean("resolution"));
+
+                // Load any answers associated with the question
+                List<Answer> ans = getAnswersForQuestion(u.getUserName(), q.getText());
+                for (Answer a : ans) {
+                    a.setQuestion(q); // establish back reference
+                    q.addReply(a);
                 }
+                    questions.add(q);
+            }
         } catch (SQLException e) {
                 e.printStackTrace();
         }
@@ -1292,6 +1310,73 @@ public class Database {
                 pstmt.executeUpdate();
         } catch (SQLException e) {
                 e.printStackTrace();
+        }
+    }
+
+     /******* John edit: method to add an answer
+     * Store a reply to a question in the database.
+     * @param questionUser user who originally posted the question
+     * @param questionText text of the question
+     * @param answerUser   user posting the reply
+     * @param answerText   reply text
+     */
+    public void addAnswer(String questionUser, String questionText,
+                          String answerUser, String answerText) {
+        String insert = "INSERT INTO answerDB (questionUserName, questionText, answerUserName, answerText, acceptance)"
+                        + " VALUES (?, ?, ?, ?, FALSE)";
+        try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+            pstmt.setString(1, questionUser);
+            pstmt.setString(2, questionText);
+            pstmt.setString(3, answerUser);
+            pstmt.setString(4, answerText);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /******* John edit: method to retrieve answers
+     * Retrieve all replies for a particular question.
+     * @param questionUser user who asked the question
+     * @param questionText text of the question
+     * @return list of Answer objects representing the stored replies
+     */
+    public List<Answer> getAnswersForQuestion(String questionUser, String questionText) {
+        List<Answer> answers = new ArrayList<>();
+        String query = "SELECT answerUserName, answerText, acceptance FROM answerDB WHERE questionUserName = ? AND questionText = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, questionUser);
+            pstmt.setString(2, questionText);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Answer a = new Answer();
+                User u = new User(rs.getString("answerUserName"), "", false, false, false, false, false);
+                a.setUser(u);
+                a.setText(rs.getString("answerText"));
+                a.setAcceptance(rs.getBoolean("acceptance"));
+                answers.add(a);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return answers;
+    }
+
+    /******* John edit: method to update answer acceptance
+     * Update the acceptance flag for a stored reply.
+     */
+    public void updateAnswerAcceptance(String questionUser, String questionText,
+                                       String answerUser, String answerText, boolean acceptance) {
+        String update = "UPDATE answerDB SET acceptance = ? WHERE questionUserName = ? AND questionText = ? AND answerUserName = ? AND answerText = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+            pstmt.setBoolean(1, acceptance);
+            pstmt.setString(2, questionUser);
+            pstmt.setString(3, questionText);
+            pstmt.setString(4, answerUser);
+            pstmt.setString(5, answerText);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 	
