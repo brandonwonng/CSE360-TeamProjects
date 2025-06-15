@@ -497,34 +497,53 @@ public class GUIStudentQuestionPage {
 		    int unread = unreadTracker.getUnreadCount(quest);
 		                text = new Text("(" + unread + " new) " + quest.getText() );
 		        text.setLayoutX(10);
-		        text.setLayoutY(23 + ((i+1) * 30));
+		        text.setLayoutY(23 + ((i+1) * 40));
 			
 			//See replies button
 		        button = new Button("See Replies");
 		        setupButtonUI(button, "Dialog", 10, 0,
-		                Pos.CENTER, 0, 10 + (i * 30));
+		                Pos.CENTER, 0, 10 + (i * 40));
 		        button.setOnAction((event) -> {
 		                Button but = (Button) event.getSource();
 		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/60));
 		        });
 			
-			//Modify Question Button
-			 
-			Button modifyButton = new Button("Update Question");
-		        setupButtonUI(modifyButton, "Dialog", 10, 0,
-		                Pos.CENTER, 80, 10 + (i * 30));
-		        modifyButton.setOnAction((event) -> {result = dialogUpdateQuestion.showAndWait();
-			if(result.isPresent()) {
-				//If there is text in the dialog box, the chosen question will have its text modified
-	        	Button but = (Button) event.getSource();
-    			Question q = questionSet.getQuestion(((int)but.getLayoutY()/60));
-				theDatabase.updateQuestionText(q.getUser().getUserName(), q.getText(), result.get());
-				q.setText(result.get());
-				seeMyAll();
-				dialogUpdateQuestion.getEditor().clear();
-		        }});
-		        
-		        questionPane.getChildren().addAll(text, button, modifyButton);
+			//NOAH EDITS: Derived Student Story 8
+		     	//Revise & Submit New Version
+		        Button reviseButton = new Button("Revise & Submit New Version");
+		        setupButtonUI(reviseButton, "Dialog", 10, 0, Pos.CENTER, 80, 10 + (i * 40));
+
+		        reviseButton.setOnAction((event) -> {
+		            Button but = (Button) event.getSource();
+		            Question original = questionSet.getQuestion((int) but.getLayoutY() / 60);
+
+		            //Populate with the current question text
+		            TextInputDialog dialog = new TextInputDialog(original.getText());
+		            dialog.setTitle("Revise Question");
+		            dialog.setHeaderText("Edit your question to create a new version");
+
+		            Optional<String> result = dialog.showAndWait();
+		            if (result.isPresent()) {
+		                String newText = result.get();
+
+		                //Add a note that this is a derived question from original question
+		                String derivedNote = "[Derived from: \"" + original.getText() + "\"]\n";
+		                newText = derivedNote + newText;
+
+		                //Create new question with edited text
+		                Question newQuestion = new Question();
+		                newQuestion.setUser(theUser);
+		                newQuestion.setText(newText);
+		                newQuestion.setResolution(false);
+
+		                questionSet.addQuestion(newQuestion);
+		                theDatabase.addQuestion(theUser.getUserName(), newText);
+
+		                seeMyAll(); //Refresh the list
+		            }
+		        });
+			
+		        questionPane.getChildren().addAll(text, button, reviseButton);
 		        }
 	}
 
