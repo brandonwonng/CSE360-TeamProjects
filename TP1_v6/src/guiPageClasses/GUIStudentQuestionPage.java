@@ -574,19 +574,20 @@ public class GUIStudentQuestionPage {
 		Button postReply = new Button("Reply to this question");
 		
 		setupButtonUI(postReply, "Dialog", 18, 275, Pos.CENTER, 0, 0);
-		postReply.setOnAction((event) -> {result = dialogPostReply.showAndWait();
-			if(result.isPresent()) {
-				//If there is text in the dialog box, a new Answer object will be created
-				//and linked to the selected question
-	        	Answer ans = new Answer(); 
-	        	ans.setText(result.get());
-	        	ans.setQuestion(q);
-	        	q.addReply(ans);
-	        	ans.setUser(theUser);
-//	        	unreadTracker.markAsRead(q);//Comment this out Clay
-	        }
-			dialogPostReply.getEditor().clear();
-			});
+		
+	// John edit: Set the button action to post a reply
+        postReply.setOnAction((event) -> {
+            result = dialogPostReply.showAndWait();
+            if (result.isPresent()) {
+                    Answer ans = new Answer();
+                    ans.setText(result.get());
+                    ans.setQuestion(q);
+                    q.addReply(ans);
+                    ans.setUser(theUser);
+                    theDatabase.addAnswer(q.getUser().getUserName(), q.getText(), theUser.getUserName(), ans.getText());
+            }
+            dialogPostReply.getEditor().clear();
+    });
 		
         questionPane.getChildren().add(postReply);
 		//Pull the AnswerSet from the Question object
@@ -613,9 +614,17 @@ public class GUIStudentQuestionPage {
                 resolveButton.setDisable(true);
                 resolveButton.setText("Resolved");
             } else {
+            	// John edit: Set the action for the resolve button
                 resolveButton.setOnAction(e -> {
                     currentAnswer.setAcceptance(true);
                     currentAnswer.getQuestion().setResolution(true);
+                    // Persist resolution state
+                    theDatabase.updateAnswerAcceptance(currentAnswer.getQuestion().getUser().getUserName(),
+                                    currentAnswer.getQuestion().getText(),
+                                    currentAnswer.getUser().getUserName(),
+                                    currentAnswer.getText(), true);
+                    theDatabase.updateQuestionResolution(currentAnswer.getQuestion().getUser().getUserName(),
+                                    currentAnswer.getQuestion().getText(), true);
                     resolveButton.setDisable(true);
                     resolveButton.setText("Resolved");
                 });
