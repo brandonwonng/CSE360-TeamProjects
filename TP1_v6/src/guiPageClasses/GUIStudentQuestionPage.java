@@ -505,7 +505,7 @@ public class GUIStudentQuestionPage {
 		                Pos.CENTER, 0, 10 + (i * 40));
 		        button.setOnAction((event) -> {
 		                Button but = (Button) event.getSource();
-		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/60));
+		                viewQuestionAnswers(userSet.getQuestion((int)but.getLayoutY()/80)); //changed because this needs to be double the value i is multiplied by on line 505 to index properly 
 		        });
 			
 			//NOAH EDITS: Derived Student Story 8
@@ -515,7 +515,7 @@ public class GUIStudentQuestionPage {
 
 		        reviseButton.setOnAction((event) -> {
 		            Button but = (Button) event.getSource();
-		            Question original = questionSet.getQuestion((int) but.getLayoutY() / 60);
+		            Question original = questionSet.getQuestion((int) but.getLayoutY() / 80);//changed because this needs to be double the value i is multiplied by on line 514 to index properly 
 
 		            //Populate with the current question text
 		            TextInputDialog dialog = new TextInputDialog(original.getText());
