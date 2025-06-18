@@ -4,11 +4,17 @@ import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import databaseClasses.Database;
+import entityClasses.Question;
+import entityClasses.QuestionSet;
+import entityClasses.Answer;
+import entityClasses.AnswerSet;
 import entityClasses.User;
 
 /*******
@@ -18,7 +24,7 @@ import entityClasses.User;
  * 
  * <p> Copyright: Lynn Robert Carter © 2025 </p>
  * 
- * @author Lynn Robert Carter
+ * @author Noah Dow
  * 
  * @version 1.00		2025-04-20 Initial version
  *  
@@ -37,11 +43,15 @@ public class GUIReviewerHomePage {
 	private Label label_UserDetails = new Label();
 	private Button button_UpdateThisUser = new Button("Account Update");
 
-	
 	private Line line_Separator1 = new Line(20, 95, FCMainClass.WINDOW_WIDTH-20, 95);
-	
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
-	
+
+	private Button button_ViewAllQuestions = new Button("View All Questions");
+	private ScrollPane questionPaneScroll = new ScrollPane();
+	private Pane questionPane;
+	private QuestionSet questionSet = new QuestionSet();
+	private Question quest;
+
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
 
@@ -56,7 +66,6 @@ public class GUIReviewerHomePage {
 	
 	**********************************************************************************************/
 
-	
 	/**********
 	 * <p> Method: GUIReviewerHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
 	 * 
@@ -84,31 +93,43 @@ public class GUIReviewerHomePage {
 		theDatabase = database;
 		theUser = user;
 		
-		double WINDOW_WIDTH = FCMainClass.WINDOW_WIDTH;	
-		
+		double WINDOW_WIDTH = FCMainClass.WINDOW_WIDTH;
+
 		primaryStage.setTitle("CSE 360 Foundation Code: User Home Page");
 
-		// Label the window with the title and other common titles and buttons
-		
 		label_PageTitle.setText("Reviewer Home Page");
 		setupLabelUI(label_PageTitle, "Arial", 28, WINDOW_WIDTH, Pos.CENTER, 0, 5);
 
 		label_UserDetails.setText("User: " + user.getUserName());
 		setupLabelUI(label_UserDetails, "Arial", 20, WINDOW_WIDTH, Pos.BASELINE_LEFT, 20, 55);
-		
+
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
-		button_UpdateThisUser.setOnAction((event) -> {performUpdate(); });
-		
-        setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
-        button_Logout.setOnAction((event) -> {performLogout(); });
-        
-        setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
-        button_Quit.setOnAction((event) -> {performQuit(); });
-        
-        setup();
+		button_UpdateThisUser.setOnAction((event) -> { performUpdate(); });
+
+		setupButtonUI(button_ViewAllQuestions, "Dialog", 18, 150, Pos.CENTER, 20, 110);
+		button_ViewAllQuestions.setOnAction((event) -> { seeAllQuestions(); });
+
+		questionPane = new Pane();
+		questionPane.setLayoutX(WINDOW_WIDTH / 2 - 100);
+		questionPane.setLayoutY(100);
+
+		questionPaneScroll.setContent(questionPane);
+		questionPaneScroll.setLayoutX(WINDOW_WIDTH / 2 - 100);
+		questionPaneScroll.setLayoutY(100);
+		questionPaneScroll.setMaxSize(WINDOW_WIDTH / 2 + 100, 360);
+		questionPaneScroll.setMinSize(WINDOW_WIDTH / 2 + 100, 360);
+
+		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
+		button_Logout.setOnAction((event) -> { performLogout(); });
+
+		setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
+		button_Quit.setOnAction((event) -> { performQuit(); });
+
+		loadQuestionsFromDatabase();
+
+		setup();
 	}
 
-	
 	/**********
 	 * <p> Method: setup() </p>
 	 * 
@@ -118,19 +139,23 @@ public class GUIReviewerHomePage {
 	 */
 	public void setup() {
 		theRootPane.getChildren().clear();		
-	    theRootPane.getChildren().addAll(
-			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-	        line_Separator4, 
-	        button_Logout,
-	        button_Quit
-	    );
-			
+		theRootPane.getChildren().addAll(
+			label_PageTitle,
+			label_UserDetails,
+			button_UpdateThisUser,
+			button_ViewAllQuestions,
+			line_Separator1,
+			line_Separator4,
+			questionPaneScroll,
+			button_Logout,
+			button_Quit
+		);
+		questionPane.getChildren().clear();
 	}
-	
+
 	/**********
 	 * Private local method to initialize the standard fields for a label
 	 */
-	
 	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
 		l.setFont(Font.font(ff, f));
 		l.setMinWidth(w);
@@ -138,8 +163,7 @@ public class GUIReviewerHomePage {
 		l.setLayoutX(x);
 		l.setLayoutY(y);		
 	}
-	
-	
+
 	/**********
 	 * Private local method to initialize the standard fields for a button
 	 * 
@@ -159,13 +183,12 @@ public class GUIReviewerHomePage {
 		b.setLayoutY(y);		
 	}
 
-	
 	/**********************************************************************************************
 
 	User Interface Actions for this page
 	
 	**********************************************************************************************/
-	
+
 	private void performUpdate () {
 		if (GUISystemStartUpPage.theUserUpdatePage == null)
 			GUISystemStartUpPage.theUserUpdatePage = 
@@ -173,13 +196,65 @@ public class GUIReviewerHomePage {
 		else
 			GUISystemStartUpPage.theUserUpdatePage.setup();	
 	}
-	
 
 	private void performLogout() {
 		GUISystemStartUpPage.theSystemStartupPage.setup();
 	}
-	
+
 	private void performQuit() {
 		System.exit(0);
+	}
+
+	private void loadQuestionsFromDatabase() {
+		questionSet = new QuestionSet();
+		for (Question q : theDatabase.getAllQuestions()) {
+			questionSet.addQuestion(q);
+		}
+	}
+
+	private void seeAllQuestions() {
+		/*This method populates all questions that have been asked as well as a button linked 
+		 * to view the answers/responses of each of the questions*/
+
+		questionPane.getChildren().clear();
+		Text text;
+		Button button;
+
+		for (int i = 0; i < questionSet.getNumQuestions(); i++) {
+			quest = questionSet.getQuestion(i);
+
+			text = new Text(quest.getText());
+			text.setLayoutX(100);
+			text.setLayoutY(23 + (i * 30));
+
+			button = new Button("See Replies");
+			setupButtonUI(button, "Dialog", 10, 0, Pos.CENTER, 0, 10 + (i * 30));
+			button.setOnAction((event) -> {
+				Button but = (Button) event.getSource();
+				viewQuestionAnswers(questionSet.getQuestion(((int)but.getLayoutY() / 30)));
+			});
+
+			questionPane.getChildren().addAll(text, button);
+		}
+	}
+
+	private void viewQuestionAnswers(Question q) {
+		/*This method allows a user to view all of the answers to a given question */
+
+		questionPane.getChildren().clear();
+
+		AnswerSet replies = q.getAnswers();
+		Answer ans;
+
+		for (int i = 0; i < replies.getNumAnswers(); i++) {
+			ans = replies.getAnswer(i);
+			String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
+
+			Text text = new Text(answerDisplay);
+			text.setLayoutX(0);
+			text.setLayoutY(30 + (i * 30));
+
+			questionPane.getChildren().add(text);
+		}
 	}
 }
