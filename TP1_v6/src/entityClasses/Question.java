@@ -15,7 +15,7 @@ public class Question {
 	private String 	textContent;
 	private boolean resolution;
 	private AnswerSet replies = new AnswerSet();
-	
+	private AnswerSet reviews = new AnswerSet();
 	
 	
 	public Question() {}
@@ -41,6 +41,11 @@ public class Question {
 		
 	}
 	
+		
+	public void addReview(Answer reply) {
+		reviews.addAnswer(reply);
+		
+	}
 	
 	//getter methods follow
 	public User getUser(){
@@ -65,5 +70,14 @@ public class Question {
 	
 	public AnswerSet getAnswers(){
 		return replies;
+	}
+
+		public int getNumReview(){
+		return reviews.getNumAnswers();
+	}
+	
+	
+	public AnswerSet getReviews(){
+		return reviews;
 	}
 }
