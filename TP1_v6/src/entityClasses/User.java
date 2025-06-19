@@ -26,7 +26,6 @@ public class User {
     private boolean reviewerRole;
     private boolean instructorRole;
     private boolean staffRole;
-    private Link
     private List<User> trustedReviewers = new ArrayList<>();
 	
     /*****
