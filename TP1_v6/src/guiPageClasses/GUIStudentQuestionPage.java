@@ -379,7 +379,7 @@ public class GUIStudentQuestionPage {
     			//To get the button linked to the correct question, we take Y axis divided
     			//by the standard separation of the lines revealing the index of the correct question
     			Button but = (Button) event.getSource();
-    			viewQuestionAnswers(questionSet.getQuestion(((int)but.getLayoutY()/30)));
+    			viewQuestionAnswers(questionSet.getQuestion(((int)but.getLayoutY()/60)));
     			});
     		questionPane.getChildren().addAll(text, button);
     	}
@@ -630,7 +630,7 @@ public class GUIStudentQuestionPage {
     			//To get the button linked to the correct question, we take Y axis divided
     			//by the standard separation of the lines revealing the index of the correct question
     			Button but = (Button) event.getSource();
-    			seeReviews(questionSet.getQuestion(((int)but.getLayoutY()/60)));
+    			seeReviews(replies.getAnswer((((int)but.getLayoutY() - 35)/60)));
     			});
             //End review button code
             final Answer currentAnswer = ans;
