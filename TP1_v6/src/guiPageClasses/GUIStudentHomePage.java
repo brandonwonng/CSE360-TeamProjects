@@ -45,6 +45,7 @@ public class GUIStudentHomePage {
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
 	//Clay Edit
 	private Button button_AskQuestion = new Button("Question Dashboard");
+	private Button button_TrustedReviewers = new Button("Manage Trusted Reviewers");
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
 
@@ -103,7 +104,10 @@ public class GUIStudentHomePage {
 		button_UpdateThisUser.setOnAction((event) -> {performUpdate(); });
 		//Clay Edits
 		setupButtonUI(button_AskQuestion, "Dialog", 18, 190, Pos.CENTER, 20, 110);
-	    button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
+	   	button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
+
+		setupButtonUI(button_TrustedReviewers, "Dialog", 18, 190, Pos.CENTER, 20, 150);
+	    	button_TrustedReviewers.setOnAction((event) -> {goToTrustedReviewers(); });
 		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((event) -> {performLogout(); });
@@ -128,6 +132,7 @@ public class GUIStudentHomePage {
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
 	        line_Separator4, 
 	        button_AskQuestion,//Clay Edit
+		button_TrustedReviewers,
 	        button_Logout,
 	        button_Quit
 	    );
@@ -194,6 +199,13 @@ public class GUIStudentHomePage {
 			GUISystemStartUpPage.theStudentQuestionPage.setup(theUser);//Clay Edit
 	}
 	
+	private void goToTrustedReviewers() {
+		if (GUISystemStartUpPage.theStudentTrustedReviewerPage == null)
+			GUISystemStartUpPage.theStudentTrustedReviewerPage = 
+				new GUIStudentTrustedReviewerPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theStudentTrustedReviewerPage.setup(theUser);
+	}
 	private void performQuit() {
 		System.exit(0);
 	}
