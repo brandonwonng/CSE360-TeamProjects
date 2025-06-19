@@ -606,27 +606,9 @@ public class GUIStudentQuestionPage {
                     theDatabase.addAnswer(q.getUser().getUserName(), q.getText(), theUser.getUserName(), ans.getText());
             }
             dialogPostReply.getEditor().clear();
-    });
-		
-	//Create the button to allow reviewing the selected question
-  		Button postReview = new Button("Review this question");
-  		setupButtonUI(postReview, "Dialog", 18, 150, Pos.CENTER, 250, 0);
-  		//This needs to get a database table set up for reviews
-        postReview.setOnAction((event) -> {
-            result = dialogPostReply.showAndWait();
-            if (result.isPresent()) {
-                    Answer review = new Answer();
-                    review.setText(result.get());
-                    review.setQuestion(q);
-                    review.setUser(theUser);
-                    q.addReview(review);
-                    //theDatabase.addAnswer(q.getUser().getUserName(), q.getText(), theUser.getUserName(), review.getText());
-            }
-            dialogPostReply.getEditor().clear();
-    });
+    });		
   		
-  		
-        questionPane.getChildren().addAll(postReply, postReview);
+        questionPane.getChildren().addAll(postReply);
 		//Pull the AnswerSet from the Question object
         Answer ans;
 		AnswerSet replies = q.getAnswers();
