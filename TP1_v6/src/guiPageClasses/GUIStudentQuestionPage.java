@@ -365,12 +365,12 @@ public class GUIStudentQuestionPage {
         Text text;
         Button button;
         //this will change from a fixed length loop, to a loop based on the questionSet.getNumQuestions()
-    	for(int i = 0; i< questionSet.getNumQuestions(); i++) {
-    		quest = questionSet.getQuestion(i);
+    	for(int i = 0; i< questionSet.getNumQuestions()*2; i+=2) {
+    		quest = questionSet.getQuestion(i/2);
 			//create the text fields and display it
     		text = new Text(quest.getText());
     		text.setLayoutX(100);
-    		text.setLayoutY(23 + (i * 30));
+    		text.setLayoutY(23 + ((i+1) * 30));
     		//set up the button to view the replies
     		button = new Button("See Replies");
     		setupButtonUI(button, "Dialog", 10, 0, 
@@ -592,7 +592,7 @@ public class GUIStudentQuestionPage {
 		//Create the button to allow replying to the selected question
 		Button postReply = new Button("Reply to this question");
 		
-		setupButtonUI(postReply, "Dialog", 18, 275, Pos.CENTER, 0, 0);
+		setupButtonUI(postReply, "Dialog", 18, 150, Pos.CENTER, 10, 0);
 		
 	// John edit: Set the button action to post a reply
         postReply.setOnAction((event) -> {
@@ -608,24 +608,52 @@ public class GUIStudentQuestionPage {
             dialogPostReply.getEditor().clear();
     });
 		
-        questionPane.getChildren().add(postReply);
+	//Create the button to allow reviewing the selected question
+  		Button postReview = new Button("Review this question");
+  		setupButtonUI(postReview, "Dialog", 18, 150, Pos.CENTER, 250, 0);
+  		//This needs to get a database table set up for reviews
+        postReview.setOnAction((event) -> {
+            result = dialogPostReply.showAndWait();
+            if (result.isPresent()) {
+                    Answer review = new Answer();
+                    review.setText(result.get());
+                    review.setQuestion(q);
+                    review.setUser(theUser);
+                    q.addReview(review);
+                    //theDatabase.addAnswer(q.getUser().getUserName(), q.getText(), theUser.getUserName(), review.getText());
+            }
+            dialogPostReply.getEditor().clear();
+    });
+  		
+  		
+        questionPane.getChildren().addAll(postReply, postReview);
 		//Pull the AnswerSet from the Question object
         Answer ans;
 		AnswerSet replies = q.getAnswers();
-		
+		Button reviewButt;
 		
 		//Create line by line answer displays with one answer per line
-        for (int i = 0; i < replies.getNumAnswers(); i++) {
-            ans = replies.getAnswer(i);
+        for (int i = 0; i < replies.getNumAnswers()*2; i+=2) {
+            ans = replies.getAnswer(i/2);
             String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
             Text text = new Text(answerDisplay);
             text.setLayoutX(0);
-            text.setLayoutY(50 + (i * 30));
+            text.setLayoutY(50 + ((i+1) * 30));
             questionPane.getChildren().add(text);
-
+	    //Review Button Code
+            reviewButt = new Button("See reviews");
+    		setupButtonUI(reviewButt, "Dialog", 12, 0, 
+            		Pos.CENTER, 125, 35 + (i * 30)); //Clay Edits 19: Changed value
+    		reviewButt.setOnAction((event) -> {
+    			//To get the button linked to the correct question, we take Y axis divided
+    			//by the standard separation of the lines revealing the index of the correct question
+    			Button but = (Button) event.getSource();
+    			seeReviews(questionSet.getQuestion(((int)but.getLayoutY()/60)));
+    			});
+            //End review button code
             final Answer currentAnswer = ans;
             Button resolveButton = new Button("Mark as Resolved");
-            resolveButton.setLayoutX(400);
+            resolveButton.setLayoutX(230);
             resolveButton.setLayoutY(35 + (i * 30));
             resolveButton.setFont(Font.font("Dialog", 12));
 
@@ -653,7 +681,7 @@ public class GUIStudentQuestionPage {
             // Add PM button here
             Button pmButton = new Button("Private Message");
             pmButton.setFont(Font.font("Dialog", 12));
-            pmButton.setLayoutX(300);
+            pmButton.setLayoutX(0);
             pmButton.setLayoutY(35 + (i * 30));
 
             if (currentAnswer.getUser() != null ||
@@ -701,5 +729,47 @@ public class GUIStudentQuestionPage {
 
         }
 
-}
+	}
+		//Clay Edits 19: Added 2 new functions
+	private void seeReviews(Question q) {
+		questionPane.getChildren().clear();
+		Answer review;
+		Button back = new Button("Go Back");
+  		setupButtonUI(back, "Dialog", 18, 150, Pos.CENTER, 250, 0);
+  		back.setOnAction((event) -> {
+  			viewQuestionAnswers(q);
+		});
+  		questionPane.getChildren().add(back);
+  		//This needs to get a database table set up for reviews
+		for(int i = 0; i<q.getNumReview()*2; i+=2) {
+			review = q.getReviews().getAnswer(i/2);
+            String answerDisplay = String.format("[%s]: %s", review.getUser().getUserName(), review.getText());
+            Text text = new Text(answerDisplay);
+            text.setLayoutX(0);
+            text.setLayoutY(50 + ((i+1) * 30));
+            questionPane.getChildren().add(text);
+		}
+		
+		return;
+	}
+	
+	private void seeReviews(Answer ans) {
+		questionPane.getChildren().clear();
+		Answer review;
+		Button back = new Button("Go Back");
+  		setupButtonUI(back, "Dialog", 18, 150, Pos.CENTER, 250, 0);
+  		back.setOnAction((event) -> {
+  			viewQuestionAnswers(ans.getQuestion());
+		});
+  		questionPane.getChildren().add(back);
+		for(int i = 0; i<ans.getNumReview()*2; i+=2) {
+			review = ans.getReviews().getAnswer(i/2);
+            String answerDisplay = String.format("[%s]: %s", review.getUser().getUserName(), review.getText());
+            Text text = new Text(answerDisplay);
+            text.setLayoutX(0);
+            text.setLayoutY(50 + ((i+1) * 30));
+            questionPane.getChildren().add(text);
+		}
+		return;
+	}
 }
