@@ -10,7 +10,7 @@ public class Answer {
 	private Question 	question;
 	private String 		textContent;
 	private boolean		acceptance;
-
+	private AnswerSet reviews = new AnswerSet();
 	private List<PrivateMessage> privateMessages = new ArrayList<>();
 
 	public Answer() {}
@@ -47,11 +47,25 @@ public class Answer {
 		return acceptance;
 	}
 
+	public void addReview(Answer reply) {
+		reviews.addAnswer(reply);
+		
+	}
+	
 	public void addPrivateMessage(PrivateMessage pm) {
 		privateMessages.add(pm);
 	}
 
 	public List<PrivateMessage> getPrivateMessages() {
 		return privateMessages;
+	}
+		
+	public int getNumReview(){
+		return reviews.getNumAnswers();
+	}
+	
+	
+	public AnswerSet getReviews(){
+		return reviews;
 	}
 }
