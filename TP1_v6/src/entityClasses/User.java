@@ -1,5 +1,6 @@
 package entityClasses;
-
+import java.util.ArrayList;
+import java.util.List;
 /*******
  * <p> Title: User Class </p>
  * 
@@ -25,8 +26,9 @@ public class User {
     private boolean reviewerRole;
     private boolean instructorRole;
     private boolean staffRole;
-    
-    
+    private Link
+    private List<User> trustedReviewers = new ArrayList<>();
+	
     /*****
      * <p> Method: User() </p>
      * 
@@ -242,5 +244,45 @@ public class User {
     	if (instructorRole) numRoles++;
     	if (staffRole) numRoles++;
     	return numRoles;
+    }
+
+	/*****
+     * <p> Method: void addTrustedReviewer() </p>
+     * 
+     * <p> Description: This setter adds a reviewer to the trusted list and returns true if it was successful. </p>
+     * 
+     * @return a boolean if adding the reviewer was successful or not
+	 *
+     */
+    // Check if the chosen user is a reviewer, if they are add them to the list
+    public boolean addTrustedReviewer(User user) {
+	if (user.getReviewerRole()){
+		this.addTrustedReviewer(user);
+		return true;
+	}
+	else {
+		return false;
+		
+	}
+    }
+
+		/*****
+     * <p> Method: void removeTrustedReviewer() </p>
+     * 
+     * <p> Description: This setter removes a reviewer to the trusted list and returns true if it was successful. </p>
+     * 
+     * @return a boolean if removing the reviewer was successful or not
+     *
+     */
+    // Check if the chosen user is a reviewer, if they are add them to the list
+    public boolean removeTrustedReviewer(User user) {
+	if (this.trustedReviewers.contains(user)){
+		this.trustedReviewers.remove(user);
+		return true;
+	}
+	else {
+		return false;
+		
+	}
     }
 }
