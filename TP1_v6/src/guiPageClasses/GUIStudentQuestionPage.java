@@ -369,7 +369,7 @@ public class GUIStudentQuestionPage {
     		quest = questionSet.getQuestion(i/2);
 			//create the text fields and display it
     		text = new Text(quest.getText());
-    		text.setLayoutX(100);
+    		text.setLayoutX(0);
     		text.setLayoutY(23 + ((i+1) * 30));
     		//set up the button to view the replies
     		button = new Button("See Replies");
