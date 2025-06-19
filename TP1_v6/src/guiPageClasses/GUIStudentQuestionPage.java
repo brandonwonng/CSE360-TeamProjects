@@ -676,7 +676,7 @@ public class GUIStudentQuestionPage {
                     resolveButton.setText("Resolved");
                 });
             }
-            questionPane.getChildren().add(resolveButton);
+            questionPane.getChildren().addAll(resolveButton, reviewButt);
 
             // Add PM button here
             Button pmButton = new Button("Private Message");
