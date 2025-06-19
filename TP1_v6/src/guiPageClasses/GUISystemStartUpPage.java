@@ -201,6 +201,7 @@ public class GUISystemStartUpPage {
 	 */
 	public static GUIStudentQuestionPage theStudentQuestionPage = null; //clay edits
 
+	public static GUIStudentTrustedReviewerPage theStudentTrustedReviewerPage = null;
 	/**********************************************************************************************
 
 	Constructor
