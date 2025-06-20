@@ -188,7 +188,8 @@ public class GUIStudentTrustedReviewerPage{
 	
 	public void setup(User user) {
 		theUser = user; //Clay Edit
-		System.out.println(user.getUserName());
+		allReviewers.clear();
+		generateAllReviewers();
 		trustedReviewers = user.getTrustedReviewers();
 		theRootPane.getChildren().clear();
 		theRootPane.getChildren().addAll(label_PageTitle,
@@ -316,6 +317,27 @@ public class GUIStudentTrustedReviewerPage{
     			populateTrustedReviewers();
     			});
 			untrustedReviewerPane.getChildren().addAll(giveTrust, reviewerName);
+		}
+	}
+	
+	private void generateAllReviewers() {
+		//Set the list of all of the reviewers. Make sure the current user is not on the list even if they are a reviewer
+		User reviewer;
+		boolean flag;
+		for(String username: theDatabase.getUserList()) {
+			flag = false;
+			for(User user : theUser.getTrustedReviewers()) {
+				if (user.getUserName().equals(username)) {
+					flag = true;
+					break;}
+			}
+			
+			theDatabase.getUserAccountDetails(username);
+			if(theDatabase.getCurrentReviewerRole() && !username.equals(theUser.getUserName()) && !flag) {
+				reviewer = new User(theDatabase.getCurrentUsername(), theDatabase.getCurrentPassword(), theDatabase.getCurrentAdminRole(), theDatabase.getCurrentStudentRole(),
+						theDatabase.getCurrentReviewerRole(), theDatabase.getCurrentInstructorRole(), theDatabase.getCurrentStaffRole());
+				allReviewers.add(reviewer);
+			}
 		}
 	}
 	
