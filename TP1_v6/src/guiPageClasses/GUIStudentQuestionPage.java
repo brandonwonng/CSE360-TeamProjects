@@ -712,30 +712,22 @@ public class GUIStudentQuestionPage {
         }
 
 	}
-		//Clay Edits 19: Added 2 new functions
-	private void seeReviews(Question q) {
-		questionPane.getChildren().clear();
-		Answer review;
-		Button back = new Button("Go Back");
-  		setupButtonUI(back, "Dialog", 18, 150, Pos.CENTER, 250, 0);
-  		back.setOnAction((event) -> {
-  			viewQuestionAnswers(q);
-		});
-  		questionPane.getChildren().add(back);
-  		//This needs to get a database table set up for reviews
-		for(int i = 0; i<q.getNumReview()*2; i+=2) {
-			review = q.getReviews().getAnswer(i/2);
-            String answerDisplay = String.format("[%s]: %s", review.getUser().getUserName(), review.getText());
-            Text text = new Text(answerDisplay);
-            text.setLayoutX(0);
-            text.setLayoutY(50 + ((i+1) * 30));
-            questionPane.getChildren().add(text);
+	private void seeReviews(Answer ans) {
+		//FIXME: Clay Edits trying out the new functions for adding reviews
+		Answer fakeReview = new Answer();
+		fakeReview.setUser(theUser);
+		fakeReview.setText("Test Review");
+		theDatabase.addReview(ans.getUser().getUserName(), ans.getText(), fakeReview.getUser().getUserName(), fakeReview.getText());
+		
+		if(ans.getNumReview()==0) {
+			
+			for (Answer rev : theDatabase.getReviewsForAnswer(ans.getUser().getUserName(), ans.getText())) {
+				ans.addReview(rev);
+
+				System.out.println("added review");
+			}
 		}
 		
-		return;
-	}
-	
-	private void seeReviews(Answer ans) {
 		questionPane.getChildren().clear();
 		Answer review;
 		Button back = new Button("Go Back");
