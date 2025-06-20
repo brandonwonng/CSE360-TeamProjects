@@ -26,7 +26,7 @@ public class User {
     private boolean reviewerRole;
     private boolean instructorRole;
     private boolean staffRole;
-    private List<User> trustedReviewers = new ArrayList<>();
+    private ArrayList<User> trustedReviewers = new ArrayList<>();
 	
     /*****
      * <p> Method: User() </p>
@@ -245,6 +245,9 @@ public class User {
     	return numRoles;
     }
 
+    public ArrayList<User> getTrustedReviewers(){
+    	return trustedReviewers;
+    }
 	/*****
      * <p> Method: void addTrustedReviewer() </p>
      * 
