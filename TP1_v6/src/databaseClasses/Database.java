@@ -136,7 +136,17 @@ public class Database {
                         + "answerText VARCHAR(255), "
                         + "acceptance BOOL DEFAULT FALSE)";
         statement.execute(answerTable);
-				
+		
+	//Clay edit: Table for storing reviews
+        String reviewTable = "CREATE TABLE IF NOT EXISTS reviewDB ("
+	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	                + "parentUserName VARCHAR(255), "
+	                + "parentText VARCHAR(255), "
+	                + "reviewUserName VARCHAR(255), "
+	                + "reviewText VARCHAR(255), "
+	                + "acceptance BOOL DEFAULT FALSE)";
+        statement.execute(reviewTable);
+		
 		// Create the invitation codes table
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
 	            + "code VARCHAR(10) PRIMARY KEY, "
@@ -1378,6 +1388,56 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+	  
+    /******* Clay edit: method to add an review
+     * Store a reply to a question in the database.
+     * @param parentUser user who originally posted the question/Answer
+     * @param parentText text of the question/answer
+     * @param reviewUser   user posting the review
+     * @param reviewText   reply text
+     */
+    public void addReview(String parentUser, String parentText,
+                          String reviewUser, String reviewText) {
+        String insert = "INSERT INTO reviewDB (parentUserName, parentText, reviewUserName, reviewText, acceptance)"
+                        + " VALUES (?, ?, ?, ?, FALSE)";
+        try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+            pstmt.setString(1, parentUser);
+            pstmt.setString(2, parentText);
+            pstmt.setString(3, reviewUser);
+            pstmt.setString(4, reviewText);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /******* Clay edit: method to retrieve reviews
+     * Retrieve all reviews for a particular answer.
+     * @param parentUser user who posted the answer that is being reviewed
+     * @param parentText text of the answer being reviewed
+     * @return list of Answer objects representing the stored reviews
+     */
+    public ArrayList<Answer> getReviewsForAnswer(String parentUser, String parentText) {
+        ArrayList<Answer> reviews = new ArrayList<>();
+        String query = "SELECT reviewUserName, reviewText, acceptance FROM reviewDB WHERE parentUserName = ? AND parentText = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, parentUser);
+            pstmt.setString(2, parentText);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Answer a = new Answer();
+                User u = new User(rs.getString("reviewUserName"), "", false, false, false, false, false);
+                a.setUser(u);
+                a.setText(rs.getString("reviewText"));
+                a.setAcceptance(rs.getBoolean("acceptance"));
+                reviews.add(a);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reviews;
     }
 	
 	/*******
