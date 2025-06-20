@@ -188,6 +188,8 @@ public class GUIStudentTrustedReviewerPage{
 	
 	public void setup(User user) {
 		theUser = user; //Clay Edit
+		System.out.println(user.getUserName());
+		trustedReviewers = user.getTrustedReviewers();
 		theRootPane.getChildren().clear();
 		theRootPane.getChildren().addAll(label_PageTitle,
         		untrustedReviewerPaneScroll,
@@ -283,7 +285,7 @@ public class GUIStudentTrustedReviewerPage{
     			Button but = (Button) event.getSource();
     			User theUntrusted = trustedReviewers.get((int)but.getLayoutY()/40);
     			trustedReviewers.remove(theUntrusted);
-    			theUser.removeTrustedReviewer(theUntrusted);
+    			System.out.println(theUser.getTrustedReviewers());
     			allReviewers.add(theUntrusted);
     			populateUntrustedReviewers();
     			populateTrustedReviewers();
@@ -308,7 +310,7 @@ public class GUIStudentTrustedReviewerPage{
     			Button but = (Button) event.getSource();
     			User theTrusted = allReviewers.get((int)but.getLayoutY()/40);
     			trustedReviewers.add(theTrusted);
-    			theUser.addTrustedReviewer(theTrusted);
+    			System.out.println(theUser.getTrustedReviewers());
     			allReviewers.remove(theTrusted);
     			populateUntrustedReviewers();
     			populateTrustedReviewers();
