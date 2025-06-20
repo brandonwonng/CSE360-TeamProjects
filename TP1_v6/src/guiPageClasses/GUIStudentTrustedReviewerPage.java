@@ -269,7 +269,7 @@ public class GUIStudentTrustedReviewerPage{
 	
 	private void populateTrustedReviewers() {
 		trustedReviewerPane.getChildren().clear();
-        
+		
 		Text reviewerName;
 		Button removeTrust;
 		for(int i = 0; i < trustedReviewers.size(); i++) {
@@ -283,6 +283,7 @@ public class GUIStudentTrustedReviewerPage{
     			Button but = (Button) event.getSource();
     			User theUntrusted = trustedReviewers.get((int)but.getLayoutY()/40);
     			trustedReviewers.remove(theUntrusted);
+    			theUser.removeTrustedReviewer(theUntrusted);
     			allReviewers.add(theUntrusted);
     			populateUntrustedReviewers();
     			populateTrustedReviewers();
@@ -307,6 +308,7 @@ public class GUIStudentTrustedReviewerPage{
     			Button but = (Button) event.getSource();
     			User theTrusted = allReviewers.get((int)but.getLayoutY()/40);
     			trustedReviewers.add(theTrusted);
+    			theUser.addTrustedReviewer(theTrusted);
     			allReviewers.remove(theTrusted);
     			populateUntrustedReviewers();
     			populateTrustedReviewers();
