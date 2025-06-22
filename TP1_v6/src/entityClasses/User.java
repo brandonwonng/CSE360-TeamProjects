@@ -258,14 +258,9 @@ public class User {
      */
     // Check if the chosen user is a reviewer, if they are add them to the list
     public boolean addTrustedReviewer(User user) {
-	if (user.getReviewerRole()){
-		this.addTrustedReviewer(user);
+		this.trustedReviewers.add(user);
+		//Clay Edit 21: This needs to include code that updates the database with a user pair for trusted reviewers
 		return true;
-	}
-	else {
-		return false;
-		
-	}
     }
 
 		/*****
@@ -278,13 +273,15 @@ public class User {
      */
     // Check if the chosen user is a reviewer, if they are add them to the list
     public boolean removeTrustedReviewer(User user) {
-	if (this.trustedReviewers.contains(user)){
-		this.trustedReviewers.remove(user);
-		return true;
-	}
-	else {
-		return false;
-		
-	}
+		if (this.trustedReviewers.contains(user)){
+			this.trustedReviewers.remove(user);
+			//Clay Edit 21: This needs to include code that updates the database
+	
+			return true;
+		}
+		else {
+			return false;
+			
+		}
     }
 }
