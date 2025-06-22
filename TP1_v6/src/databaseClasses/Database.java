@@ -146,12 +146,16 @@ public class Database {
 	                + "reviewText VARCHAR(255), "
 	                + "acceptance BOOL DEFAULT FALSE)";
         statement.execute(reviewTable);
-	//Clay edit 21: Table for storing Trusted User relationships
-        String trustTable = "CREATE TABLE IF NOT EXISTS trustDB ("
+        
+      //Clay edit 21: Table for storing Private Messages
+        String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
 	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
-	                + "userGivingTrust VARCHAR(255), "
-	                + "userBeingTrusted VARCHAR(255))";
-        statement.execute(trustTable);
+	                + "sendingUser VARCHAR(255), "
+	                + "receivingUser VARCHAR(255), "
+	                + "messageText VARCHAR(255),"
+	                + "parentText VARCHAR(255),"
+	                + "read BOOL DEFAULT FALSE)"; //Clay Edit 22
+        statement.execute(messageTable);
         
       //Clay edit 21: Table for storing Private Messages
         String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
@@ -1490,7 +1494,7 @@ public class Database {
 		    e.printStackTrace();
 		}
     }
-    /**Clay Edit 19: Method to add a new trust relationship to DB
+    /**Clay Edit 19: Method to remvoe a trust relationship from DB
      * @param trustingUser : the user that is choosing to trust a reviewer
      * @param trustedUser : the reviewer that is being granted trust
      * @return void
@@ -1505,6 +1509,64 @@ public class Database {
 		    e.printStackTrace();
 		}
     }
+    
+    /******* Clay edit 22: method to retrieve trusted Users
+ * Retrieve all reviews for a particular answer.
+ * @param trustingUser user who is granting trust(the user making the call)
+ * @return list of User objects representing all of the trusted reviewers
+ */
+public ArrayList<PrivateMessage> getPrivateMessages(String receivingUser) {
+    ArrayList<PrivateMessage> messages = new ArrayList<>();
+    String query = "SELECT sendingUser, messageText, parentText, read FROM messageDB WHERE receivingUser = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        pstmt.setString(1, receivingUser);
+        ResultSet rs = pstmt.executeQuery();
+        
+        User receiver = new User(receivingUser, "", false, false, false, false, false);
+        while (rs.next()) {
+        	User sender = new User(rs.getString("sendingUser"), "", false, false, false, false, false);
+        	PrivateMessage mesg = new PrivateMessage(receiver, sender, rs.getString("messageText"), rs.getString("parentText"));
+            messages.add(mesg);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return messages;
+}
+/**Clay Edit 22: Method to add a new trust relationship to DB
+ * @param trustingUser : the user that is choosing to trust a reviewer
+ * @param trustedUser : the reviewer that is being granted trust
+ * @return void
+ * */
+public void logPrivateMessage(String sender, String receiver, String content, String parentText) {
+    String insert = "INSERT INTO messageDB (sendingUser, receivingUser, messageText, parentText, read)"
+            + " VALUES (?, ?, ?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, sender);
+	    pstmt.setString(2, receiver);
+	    pstmt.setString(3, content);
+	    pstmt.setString(4, parentText);
+	    pstmt.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+}
+
+/******* Clay edit: method to update answer acceptance
+ * Update the acceptance flag for a stored reply.
+ */
+public void updateMessageRead(String sender, String receiver, String content, String parentText) {
+    String update = "UPDATE messageDB SET read = TRUE WHERE sendingUser = ? AND receivingUser = ? AND messageText = ? AND parentText = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, sender);
+        pstmt.setString(2, receiver);
+        pstmt.setString(3, content);
+        pstmt.setString(4, parentText);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
 	/*******
 	 * <p> Debugging method</p>
 	 * 
