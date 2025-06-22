@@ -712,6 +712,9 @@ public class GUIStudentQuestionPage {
         }
 
 	}
+
+
+	
 	private void seeReviews(Answer ans) {
 		if(ans.getNumReview()==0) {
 			for (Answer rev : theDatabase.getReviewsForAnswer(ans.getUser().getUserName(), ans.getText())) {
@@ -719,11 +722,11 @@ public class GUIStudentQuestionPage {
 				//System.out.println("added review");
 			}
 		}
-		
+
 		questionPane.getChildren().clear();
 		Answer review;
 		Button back = new Button("Go Back");
-  		setupButtonUI(back, "Dialog", 18, 150, Pos.CENTER, 250, 0);
+  		setupButtonUI(back, "Dialog", 18, 150, Pos.CENTER, 0, 0);
   		back.setOnAction((event) -> {
   			viewQuestionAnswers(ans.getQuestion());
 		});
@@ -755,12 +758,75 @@ public class GUIStudentQuestionPage {
 	        button_feedback = new Button("Send Feedback to Reviewer");
 	        setupButtonUI(button_feedback, "Dialog", 12, 0, Pos.CENTER, 150, 50 + (i * 30));
 	        button_feedback.setOnAction((event) -> {
-	            //Add code to send a private message to the reviewer
+	        	Button but = (Button) event.getSource();
+	            int index = (int) (but.getLayoutY() - 50) /60;
+	            Answer theReview = ans.getReviews().getAnswer(index);
+	        	TextInputDialog pmDialog = new TextInputDialog();
+        	    pmDialog.setTitle("Private Message");
+        	    pmDialog.setHeaderText("Send a private message");
+
+        	    Optional<String> pmResult = pmDialog.showAndWait();
+        	    
+        	    pmResult.ifPresent(msg -> {
+    	            theDatabase.logPrivateMessage(theUser.getUserName(), theReview.getUser().getUserName(), msg, theReview.getText());
+        	    });
+
+
 	        });
 	        
+	        if(theUser.getReviewerRole()) {
+	        	Button button_viewFeedback = new Button("View Review Feedback");
+	        	setupButtonUI(button_viewFeedback, "Dialog", 12, 0, Pos.CENTER, 325, 50 + (i * 30));
+	        	button_viewFeedback.setOnAction((event) ->{
+	        		//add code to see feedback for this 
+	        		Button but = (Button) event.getSource();
+		            int index = (int) (but.getLayoutY() - 50) /60;
+		            Answer theReview = ans.getReviews().getAnswer(index);
+	        		seeMessages(theReview, ans);
+	        	});
+	        	questionPane.getChildren().add(button_viewFeedback);
+	        }
 	        
             questionPane.getChildren().addAll(text,button, button_feedback);
 		}
 		return;
 	}
+	
+	private void seeMessages(Answer review, Answer parentAnswer) {
+		questionPane.getChildren().clear();
+		ArrayList<PrivateMessage> messages = theDatabase.getPrivateMessages(theUser.getUserName());
+		ArrayList<PrivateMessage> myMessages = new ArrayList<>();
+		
+		for(PrivateMessage mesg : messages) {
+  			if(mesg.getReceiver().getUserName().equals(theUser.getUserName()) && mesg.getParentText().equals(review.getText())) {
+  				  myMessages.add(mesg);
+  				  theDatabase.updateMessageRead(mesg.getSender().getUserName(), mesg.getReceiver().getUserName(), 
+  						  mesg.getContent(), mesg.getParentText());
+  			}
+		}
+		
+  		Text answerText = new Text(String.format("Answer: %s", parentAnswer.getText()));
+  		answerText.setLayoutX(0);
+  		answerText.setLayoutY(45);
+  		questionPane.getChildren().add(answerText);
+  		
+		Button back = new Button("Go Back");
+  		setupButtonUI(back, "Dialog", 18, 150, Pos.CENTER, 0, 0);
+  		back.setOnAction((event) -> {
+  			seeReviews(parentAnswer);
+		});
+  		questionPane.getChildren().add(back);
+  		
+  		for(int i =0; i<myMessages.size()*2; i+=2) {
+  			PrivateMessage message = myMessages.get(i/2);
+  			String messageDisplay = String.format("%s gave the following:\n%s", message.getSender().getUserName(), message.getContent());
+            Text text = new Text(messageDisplay);
+            text.setLayoutX(0);
+            text.setLayoutY(70 + ((i) * 30));
+  			questionPane.getChildren().add(text);
+  		}
+  		
+  		return;	
+  		}
+
 }
