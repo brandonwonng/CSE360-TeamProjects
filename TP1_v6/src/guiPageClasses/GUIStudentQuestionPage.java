@@ -22,7 +22,7 @@ import entityClasses.AnswerSet;
 import entityClasses.PrivateMessage;
 import javafx.scene.text.*;
 import utilityClasses.UnreadAnswerTracker; // added for tracking unread answers
-
+import java.util.ArrayList;
 /*******
  * <p> Title: GUIStudentQuestionPage Class. </p>
  * 
