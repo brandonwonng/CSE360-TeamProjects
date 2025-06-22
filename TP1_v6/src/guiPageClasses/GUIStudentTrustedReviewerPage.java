@@ -104,18 +104,9 @@ public class GUIStudentTrustedReviewerPage{
 		theRootPane = theRoot;
 		theDatabase = database;
 		theUser = user;
-		trustedReviewers = user.getTrustedReviewers();
-		
-		//Set the list of all of the reviewers. Make sure the current user is not on the list even if they are a reviewer
-		User reviewer;
-		for(String username: database.getUserList()) {
-			database.getUserAccountDetails(username);
-			if(database.getCurrentReviewerRole() && !username.equals(theUser.getUserName())) {
-				reviewer = new User(database.getCurrentUsername(), database.getCurrentPassword(), database.getCurrentAdminRole(), database.getCurrentStudentRole(),
-						database.getCurrentReviewerRole(), database.getCurrentInstructorRole(), database.getCurrentStaffRole());
-				allReviewers.add(reviewer);
-			}
-		}
+		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
+		allReviewers.clear();
+		generateAllReviewers();
 		
 		double WINDOW_WIDTH = FCMainClass.WINDOW_WIDTH;
 		
@@ -188,9 +179,9 @@ public class GUIStudentTrustedReviewerPage{
 	
 	public void setup(User user) {
 		theUser = user; //Clay Edit
+		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		allReviewers.clear();
 		generateAllReviewers();
-		trustedReviewers = user.getTrustedReviewers();
 		theRootPane.getChildren().clear();
 		theRootPane.getChildren().addAll(label_PageTitle,
         		untrustedReviewerPaneScroll,
@@ -272,7 +263,7 @@ public class GUIStudentTrustedReviewerPage{
 	
 	private void populateTrustedReviewers() {
 		trustedReviewerPane.getChildren().clear();
-		
+		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		Text reviewerName;
 		Button removeTrust;
 		for(int i = 0; i < trustedReviewers.size(); i++) {
@@ -285,9 +276,10 @@ public class GUIStudentTrustedReviewerPage{
 			removeTrust.setOnAction((event) -> {
     			Button but = (Button) event.getSource();
     			User theUntrusted = trustedReviewers.get((int)but.getLayoutY()/40);
-    			trustedReviewers.remove(theUntrusted);
-    			System.out.println(theUser.getTrustedReviewers());
+    			
+    			theUser.removeTrustedReviewer(theDatabase, theUntrusted); //Clay Edit 21
     			allReviewers.add(theUntrusted);
+    			
     			populateUntrustedReviewers();
     			populateTrustedReviewers();
     			});
@@ -297,7 +289,7 @@ public class GUIStudentTrustedReviewerPage{
 	
 	private void populateUntrustedReviewers() {
         untrustedReviewerPane.getChildren().clear();
-        
+        trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		Text reviewerName;
 		Button giveTrust;
 		for(int i = 0; i < allReviewers.size(); i++) {
@@ -310,9 +302,10 @@ public class GUIStudentTrustedReviewerPage{
 			giveTrust.setOnAction((event) -> {
     			Button but = (Button) event.getSource();
     			User theTrusted = allReviewers.get((int)but.getLayoutY()/40);
-    			trustedReviewers.add(theTrusted);
-    			System.out.println(theUser.getTrustedReviewers());
+    			
+    			theUser.addTrustedReviewer(theDatabase, theTrusted); //Clay Edit 21
     			allReviewers.remove(theTrusted);
+    			
     			populateUntrustedReviewers();
     			populateTrustedReviewers();
     			});
@@ -321,12 +314,12 @@ public class GUIStudentTrustedReviewerPage{
 	}
 	
 	private void generateAllReviewers() {
-		//Set the list of all of the reviewers. Make sure the current user is not on the list even if they are a reviewer
+		//Set the list of all of the reviewers not on the trusted list. Make sure the current user is not on the list even if they are a reviewer
 		User reviewer;
 		boolean flag;
 		for(String username: theDatabase.getUserList()) {
 			flag = false;
-			for(User user : theUser.getTrustedReviewers()) {
+			for(User user : trustedReviewers) {
 				if (user.getUserName().equals(username)) {
 					flag = true;
 					break;}
