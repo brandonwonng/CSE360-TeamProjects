@@ -8,7 +8,7 @@ import java.util.UUID;
 import entityClasses.User;
 import entityClasses.Question; // John edit
 import entityClasses.Answer; // John edit
-
+import entityClasses.PrivateMessage; // Clay edit
 /*******
  * <p> Title: Database Class. </p>
  * 
@@ -146,6 +146,13 @@ public class Database {
 	                + "reviewText VARCHAR(255), "
 	                + "acceptance BOOL DEFAULT FALSE)";
         statement.execute(reviewTable);
+		
+	//Clay edit 21: Table for storing Trusted User relationships
+        String trustTable = "CREATE TABLE IF NOT EXISTS trustDB ("
+	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	                + "userGivingTrust VARCHAR(255), "
+	                + "userBeingTrusted VARCHAR(255))";
+        statement.execute(trustTable);
         
       //Clay edit 21: Table for storing Private Messages
         String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
@@ -156,16 +163,6 @@ public class Database {
 	                + "parentText VARCHAR(255),"
 	                + "read BOOL DEFAULT FALSE)"; //Clay Edit 22
         statement.execute(messageTable);
-        
-      //Clay edit 21: Table for storing Private Messages
-        String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
-	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
-	                + "sendingUser VARCHAR(255), "
-	                + "receivingUser VARCHAR(255), "
-	                + "messageText VARCHAR(255),"
-	                + "parentMessageId INT)";
-        statement.execute(messageTable);
-		
 		// Create the invitation codes table
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
 	            + "code VARCHAR(10) PRIMARY KEY, "
