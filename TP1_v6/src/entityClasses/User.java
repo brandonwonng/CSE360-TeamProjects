@@ -1,6 +1,7 @@
 package entityClasses;
 import java.util.ArrayList;
 import java.util.List;
+import databaseClasses.Database;
 /*******
  * <p> Title: User Class </p>
  * 
@@ -245,8 +246,9 @@ public class User {
     	return numRoles;
     }
 
-    public ArrayList<User> getTrustedReviewers(){
-    	return trustedReviewers;
+    public ArrayList<User> getTrustedReviewers(Database db){
+    	
+    	return db.getTrustedReviewers(userName);
     }
 	/*****
      * <p> Method: void addTrustedReviewer() </p>
@@ -257,9 +259,10 @@ public class User {
 	 *
      */
     // Check if the chosen user is a reviewer, if they are add them to the list
-    public boolean addTrustedReviewer(User user) {
-		this.trustedReviewers.add(user);
+    public boolean addTrustedReviewer(Database db, User trustedUser) {
+		this.trustedReviewers.add(trustedUser);
 		//Clay Edit 21: This needs to include code that updates the database with a user pair for trusted reviewers
+		db.grantTrust(this.userName, trustedUser.getUserName());
 		return true;
     }
 
@@ -272,16 +275,10 @@ public class User {
      *
      */
     // Check if the chosen user is a reviewer, if they are add them to the list
-    public boolean removeTrustedReviewer(User user) {
-		if (this.trustedReviewers.contains(user)){
-			this.trustedReviewers.remove(user);
+    public boolean removeTrustedReviewer(Database db, User untrustedUser) {
+			this.trustedReviewers.remove(untrustedUser);
 			//Clay Edit 21: This needs to include code that updates the database
-	
+			db.removeTrust(this.userName, untrustedUser.getUserName());
 			return true;
-		}
-		else {
-			return false;
-			
-		}
     }
 }
