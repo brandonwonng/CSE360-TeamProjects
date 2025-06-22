@@ -146,6 +146,21 @@ public class Database {
 	                + "reviewText VARCHAR(255), "
 	                + "acceptance BOOL DEFAULT FALSE)";
         statement.execute(reviewTable);
+	//Clay edit 21: Table for storing Trusted User relationships
+        String trustTable = "CREATE TABLE IF NOT EXISTS trustDB ("
+	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	                + "userGivingTrust VARCHAR(255), "
+	                + "userBeingTrusted VARCHAR(255))";
+        statement.execute(trustTable);
+        
+      //Clay edit 21: Table for storing Private Messages
+        String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
+	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	                + "sendingUser VARCHAR(255), "
+	                + "receivingUser VARCHAR(255), "
+	                + "messageText VARCHAR(255),"
+	                + "parentMessageId INT)";
+        statement.execute(messageTable);
 		
 		// Create the invitation codes table
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
@@ -1439,7 +1454,57 @@ public class Database {
         }
         return reviews;
     }
-	
+	    /******* Clay edit 19: method to retrieve trusted Users
+     * Retrieve all reviews for a particular answer.
+     * @param trustingUser user who is granting trust(the user making the call)
+     * @return list of User objects representing all of the trusted reviewers
+     */
+    public ArrayList<User> getTrustedReviewers(String trustingUser) {
+        ArrayList<User> trustedUsers = new ArrayList<>();
+        String query = "SELECT userBeingTrusted FROM trustDB WHERE userGivingTrust = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, trustingUser);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                User u = new User(rs.getString("userBeingTrusted"), "", false, false, false, false, false);
+                trustedUsers.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return trustedUsers;
+    }
+    /**Clay Edit 19: Method to add a new trust relationship to DB
+     * @param trustingUser : the user that is choosing to trust a reviewer
+     * @param trustedUser : the reviewer that is being granted trust
+     * @return void
+     * */
+    public void grantTrust(String trustingUser, String trustedUser) {
+        String insert = "INSERT INTO trustDB (userGivingTrust, userBeingTrusted)"
+                + " VALUES (?, ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+		    pstmt.setString(1, trustingUser);
+		    pstmt.setString(2, trustedUser);
+		    pstmt.executeUpdate();
+		} catch (SQLException e) {
+		    e.printStackTrace();
+		}
+    }
+    /**Clay Edit 19: Method to add a new trust relationship to DB
+     * @param trustingUser : the user that is choosing to trust a reviewer
+     * @param trustedUser : the reviewer that is being granted trust
+     * @return void
+     * */
+    public void removeTrust(String trustingUser, String trustedUser) {
+        String remove = "DELETE FROM trustDB WHERE userGivingTrust = ? AND userBeingTrusted = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(remove)) {
+		    pstmt.setString(1, trustingUser);
+		    pstmt.setString(2, trustedUser);
+		    pstmt.executeUpdate();
+		} catch (SQLException e) {
+		    e.printStackTrace();
+		}
+    }
 	/*******
 	 * <p> Debugging method</p>
 	 * 
