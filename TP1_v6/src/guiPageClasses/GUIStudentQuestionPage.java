@@ -713,18 +713,10 @@ public class GUIStudentQuestionPage {
 
 	}
 	private void seeReviews(Answer ans) {
-		//FIXME: Clay Edits trying out the new functions for adding reviews
-		Answer fakeReview = new Answer();
-		fakeReview.setUser(theUser);
-		fakeReview.setText("Test Review");
-		theDatabase.addReview(ans.getUser().getUserName(), ans.getText(), fakeReview.getUser().getUserName(), fakeReview.getText());
-		
 		if(ans.getNumReview()==0) {
-			
 			for (Answer rev : theDatabase.getReviewsForAnswer(ans.getUser().getUserName(), ans.getText())) {
 				ans.addReview(rev);
-
-				System.out.println("added review");
+				//System.out.println("added review");
 			}
 		}
 		
@@ -736,13 +728,38 @@ public class GUIStudentQuestionPage {
   			viewQuestionAnswers(ans.getQuestion());
 		});
   		questionPane.getChildren().add(back);
+  		Button button;//Clay edit 21 June
+  		Button button_feedback;
 		for(int i = 0; i<ans.getNumReview()*2; i+=2) {
 			review = ans.getReviews().getAnswer(i/2);
             String answerDisplay = String.format("[%s]: %s", review.getUser().getUserName(), review.getText());
             Text text = new Text(answerDisplay);
             text.setLayoutX(0);
-            text.setLayoutY(50 + ((i+1) * 30));
-            questionPane.getChildren().add(text);
+            text.setLayoutY(60 + ((i+1) * 30));
+            //Clay edit 21 June
+            button = new Button("Add as trusted reviewer");
+	        setupButtonUI(button, "Dialog", 12, 0, Pos.CENTER, 0, 50 + (i * 30));
+	        for(User user: theUser.getTrustedReviewers()) {
+	        	if(user.getUserName().equals(review.getUser().getUserName())) {
+	        		button.setDisable(true);
+	        		break;
+	        	}
+	        }
+	        button.setOnAction((event) -> {
+	            Button but = (Button) event.getSource();
+	            int index = (int) (but.getLayoutY() - 50) /60;
+	            theUser.addTrustedReviewer(ans.getReviews().getAnswer(index).getUser());
+	            seeReviews(ans);
+	        });
+	        
+	        button_feedback = new Button("Send Feedback to Reviewer");
+	        setupButtonUI(button_feedback, "Dialog", 12, 0, Pos.CENTER, 150, 50 + (i * 30));
+	        button_feedback.setOnAction((event) -> {
+	            //Add code to send a private message to the reviewer
+	        });
+	        
+	        
+            questionPane.getChildren().addAll(text,button, button_feedback);
 		}
 		return;
 	}
