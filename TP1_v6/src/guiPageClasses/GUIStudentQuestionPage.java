@@ -739,7 +739,7 @@ public class GUIStudentQuestionPage {
             //Clay edit 21 June
             button = new Button("Add as trusted reviewer");
 	        setupButtonUI(button, "Dialog", 12, 0, Pos.CENTER, 0, 50 + (i * 30));
-	        for(User user: theUser.getTrustedReviewers()) {
+	        for(User user: theUser.getTrustedReviewers(theDatabase)) {
 	        	if(user.getUserName().equals(review.getUser().getUserName())) {
 	        		button.setDisable(true);
 	        		break;
@@ -748,7 +748,7 @@ public class GUIStudentQuestionPage {
 	        button.setOnAction((event) -> {
 	            Button but = (Button) event.getSource();
 	            int index = (int) (but.getLayoutY() - 50) /60;
-	            theUser.addTrustedReviewer(ans.getReviews().getAnswer(index).getUser());
+	            theUser.addTrustedReviewer(theDatabase, ans.getReviews().getAnswer(index).getUser());
 	            seeReviews(ans);
 	        });
 	        
