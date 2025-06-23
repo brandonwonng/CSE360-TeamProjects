@@ -1587,7 +1587,7 @@ public void updateMessageRead(String sender, String receiver, String content, St
 		}
 		resultSet.close();
 	}
-
+	
 
 	/*******
 	 * <p> Method: void closeConnection()</p>
@@ -1608,4 +1608,8 @@ public void updateMessageRead(String sender, String receiver, String content, St
 			se.printStackTrace(); 
 		} 
 	}
+
+
+
+
 }
