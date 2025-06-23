@@ -17,6 +17,7 @@ import databaseClasses.Database;
 import entityClasses.User;
 import entityClasses.Question;
 import entityClasses.QuestionSet;
+import entityClasses.ReviewerTrust;
 import entityClasses.Answer;
 import entityClasses.AnswerSet;
 import entityClasses.PrivateMessage;
@@ -26,43 +27,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 
-/*******
- * <p> Title: GUIStudentQuestionPage Class. </p>
- * 
- * <p> Description: The Java/FX-based Student Question Page.</p>
- * 
- * <p> Copyright: Clay Hauser © 2025 </p>
- * 
- * @author Clay Hauser
- * 
- * @version 1.00		2025-04-20 Initial version
- *  
- */
-
 public class GUIStudentTrustedReviewerPage{
-	
-	/**********************************************************************************************
 
-	Attributes
-	
-	**********************************************************************************************/
-	
-	// These are the application values required by the user interface
 	private Label label_PageTitle = new Label();
-
     private Label label_Purpose =  new Label("Manage who your trusted reviewers are."); 
-    
 	private Line line_Separator1 = new Line(20, 95, FCMainClass.WINDOW_WIDTH-20, 95);
-	
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
-	
-	private Button button_BackToStudentHomePage = new Button("Return to the Student Home Page");
-	
+	private Button button_BackToStudentHomePage = new Button("Return to the Home Page");
 	private ScrollPane untrustedReviewerPaneScroll = new ScrollPane();
 	private ScrollPane trustedReviewerPaneScroll = new ScrollPane();
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
-
 	private Stage thePrimaryStage;
 	private Pane theRootPane;
 	private Pane untrustedReviewerPane;
@@ -71,34 +46,8 @@ public class GUIStudentTrustedReviewerPage{
 	private User theUser;
 	private ArrayList<User> trustedReviewers = new ArrayList<>();
 	private ArrayList<User> allReviewers = new ArrayList<>();
-	
 	Optional<String> result;
 
-
-	/**********************************************************************************************
-
-	Constructors
-	
-	**********************************************************************************************/
-
-	
-	/**********
-	 * <p> Method: GUIAdminUpdatePage(Stage ps, Pane theRoot, Database database, User user) </p>
-	 * 
-	 * <p> Description: This method initializes all the elements of the graphical user interface
-	 * This method determines the location, size, font, color, and change and event handlers for
-	 * each GUI object. </p>
-	 * 
-	 * @param ps specifies the JavaFX Stage to be used for this GUI and it's methods
-	 * 
-	 * @param theRoot specifies the JavaFX Pane to be used for this GUI and it's methods
-	 * 
-	 * @param database specifies the Database to be used by this GUI and it's methods
-	 * 
-	 * @param user specifies the User for this GUI and it's methods
-	 * 
-	 */
-	@SuppressWarnings("unused")
 	public GUIStudentTrustedReviewerPage(Stage ps, Pane theRoot, Database database, User user) {
 		thePrimaryStage = ps;
 		theRootPane = theRoot;
@@ -107,103 +56,70 @@ public class GUIStudentTrustedReviewerPage{
 		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		allReviewers.clear();
 		generateAllReviewers();
-		
 		double WINDOW_WIDTH = FCMainClass.WINDOW_WIDTH;
-		
-		//Create a new pane to house the question objects
 		untrustedReviewerPane = new Pane();
 		untrustedReviewerPane.setLayoutX(WINDOW_WIDTH/2);
 		untrustedReviewerPane.setLayoutY(100);
-		
-		//Create a new pane to house the question objects
 		trustedReviewerPane = new Pane();
 		trustedReviewerPane.setLayoutX(0);
 		trustedReviewerPane.setLayoutY(100);
-		
-		//Create a scrollpane to enable scrolling for viewing your current "Untrusted Reviewers"
 		untrustedReviewerPaneScroll.setContent(untrustedReviewerPane);
 		untrustedReviewerPaneScroll.setLayoutX(WINDOW_WIDTH/2);
 		untrustedReviewerPaneScroll.setLayoutY(100);
-		//Lock Window Size to WINDOW_WIDTH/2+100, 360
 		untrustedReviewerPaneScroll.setMaxSize(WINDOW_WIDTH/2, 360);
 		untrustedReviewerPaneScroll.setMinSize(WINDOW_WIDTH/2, 360);
-		
-		//Create a scrollpane to enable scrolling for viewing your current "Trusted Reviewers"
 		trustedReviewerPaneScroll.setContent(trustedReviewerPane);
 		trustedReviewerPaneScroll.setLayoutX(0);
 		trustedReviewerPaneScroll.setLayoutY(100);
-		//Lock Window Size to WINDOW_WIDTH/2+100, 360
 		trustedReviewerPaneScroll.setMaxSize(WINDOW_WIDTH/2, 360);
 		trustedReviewerPaneScroll.setMinSize(WINDOW_WIDTH/2, 360);
-		
-		//Set the stage title
 		thePrimaryStage.setTitle("CSE 360 Foundation Code: Student Trusted Reviewer Page");
-		
 		label_PageTitle.setText("Student Trusted Reviewer Page");
 		setupLabelUI(label_PageTitle, "Arial", 28, WINDOW_WIDTH, Pos.CENTER, 0, 5);
-		
 		setupLabelUI(label_Purpose, "Arial", 10, WINDOW_WIDTH, Pos.CENTER, 0, 35);
-		
-		//Set up for all main buttons on the page
-		
-        setupButtonUI(button_BackToStudentHomePage, "Dialog", 18, 300, 
-        		Pos.CENTER, WINDOW_WIDTH/2-150, 475);
+        setupButtonUI(button_BackToStudentHomePage, "Dialog", 18, 300, Pos.CENTER, WINDOW_WIDTH/2-150, 475);
         button_BackToStudentHomePage.setOnAction((event) -> {goToStudentHomePage();});
-		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((event) -> {performLogout(); });
-        
         setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
         button_Quit.setOnAction((event) -> {performQuit(); });
-        
-        
-        // Place all of the just-initialized GUI elements into the pane
         theRoot.getChildren().clear();
         theRoot.getChildren().addAll(label_PageTitle,
-        		untrustedReviewerPaneScroll,
-        		trustedReviewerPaneScroll,
-           		label_Purpose,
-        		button_BackToStudentHomePage, 
-        		line_Separator4,
-        		line_Separator1,
-        		button_Logout,
-        		button_Quit
-        		);
+        	untrustedReviewerPaneScroll,
+        	trustedReviewerPaneScroll,
+        	label_Purpose,
+        	button_BackToStudentHomePage, 
+        	line_Separator4,
+        	line_Separator1,
+        	button_Logout,
+        	button_Quit);
         trustedReviewerPane.getChildren().clear();
         untrustedReviewerPane.getChildren().clear();
         populateTrustedReviewers();
         populateUntrustedReviewers();
-        
 	}
-	
-	
+
 	public void setup(User user) {
-		theUser = user; //Clay Edit
+		theUser = user;
 		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		allReviewers.clear();
 		generateAllReviewers();
 		theRootPane.getChildren().clear();
 		theRootPane.getChildren().addAll(label_PageTitle,
-        		untrustedReviewerPaneScroll,
-        		trustedReviewerPaneScroll,
-           		label_Purpose,
-        		button_BackToStudentHomePage, 
-        		line_Separator4,
-        		line_Separator1,
-        		button_Logout,
-        		button_Quit
-    		);
+        	untrustedReviewerPaneScroll,
+        	trustedReviewerPaneScroll,
+        	label_Purpose,
+        	button_BackToStudentHomePage, 
+        	line_Separator4,
+        	line_Separator1,
+        	button_Logout,
+        	button_Quit);
 		trustedReviewerPane.getChildren().clear();
         untrustedReviewerPane.getChildren().clear();
         populateTrustedReviewers();
         populateUntrustedReviewers();
-	}	
-	
-	
-	/**********
-	 * Private local method to initialize the standard fields for a label
-	 */
-	
+	}
+
 	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
 		l.setFont(Font.font(ff, f));
 		l.setMinWidth(w);
@@ -211,19 +127,7 @@ public class GUIStudentTrustedReviewerPage{
 		l.setLayoutX(x);
 		l.setLayoutY(y);		
 	}
-	
-	
-	/**********
-	 * Private local method to initialize the standard fields for a button
-	 * 
-	 * @param b		The Button object to be initialized
-	 * @param ff	The font to be used
-	 * @param f		The size of the font to be used
-	 * @param w		The width of the Button
-	 * @param p		The alignment (e.g. left, centered, or right)
-	 * @param x		The location from the left edge (x axis)
-	 * @param y		The location from the top (y axis)
-	 */
+
 	private void setupButtonUI(Button b, String ff, double f, double w, Pos p, double x, double y){
 		b.setFont(Font.font(ff, f));
 		b.setMinWidth(w);
@@ -232,89 +136,72 @@ public class GUIStudentTrustedReviewerPage{
 		b.setLayoutY(y);		
 	}
 
-	/**********
-	 * Private local method to initialize the standard fields for a text field
-	 *
-	private void setupTextUI(TextField t, String ff, double f, double w, Pos p, double x, double y, boolean e){
-		t.setFont(Font.font(ff, f));
-		t.setMinWidth(w);
-		t.setMaxWidth(w);
-		t.setAlignment(p);
-		t.setLayoutX(x);
-		t.setLayoutY(y);		
-		t.setEditable(e);
-	}	
-	
-	/**********************************************************************************************
-
-	User Interface Actions for this page
-	
-	**********************************************************************************************/
-	
 	private void goToStudentHomePage() {
-        // Proceed to the student account update page
 		if (GUISystemStartUpPage.theStudentHomePage == null) {
-			GUISystemStartUpPage.theStudentHomePage = 
-					new GUIStudentHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
+			GUISystemStartUpPage.theStudentHomePage = new GUIStudentHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
 		}
-		else	
-			GUISystemStartUpPage.theStudentHomePage.setup();
+		else	GUISystemStartUpPage.theStudentHomePage.setup();
 	}
-	
+
 	private void populateTrustedReviewers() {
 		trustedReviewerPane.getChildren().clear();
 		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		Text reviewerName;
 		Button removeTrust;
-		for(int i = 0; i < trustedReviewers.size(); i++) {
-			reviewerName = new Text(trustedReviewers.get(i).getUserName());
-			reviewerName.setLayoutX(100);
-			reviewerName.setLayoutY(15+(i*40));
+		for (int i = 0; i < trustedReviewers.size(); i++) {
+		    User trustedUser = trustedReviewers.get(i);
+		    ReviewerTrust trust = theUser.getReviewerTrust(trustedUser.getUserName());
+		    int weight = (trust != null) ? trust.getWeight() : -1;
+
+		    reviewerName = new Text(trustedUser.getUserName() + " (Weight: " + weight + ")");
+		    reviewerName.setLayoutX(10);
+		    reviewerName.setLayoutY(15 + (i * 40));
+
 			removeTrust = new Button("Remove"); 
-			setupButtonUI(removeTrust, "Dialog", 12, 0, 
-            		Pos.CENTER, 0,(i * 40));
+			setupButtonUI(removeTrust, "Dialog", 12, 0, Pos.CENTER, 235,(i * 40));
 			removeTrust.setOnAction((event) -> {
-    			Button but = (Button) event.getSource();
-    			User theUntrusted = trustedReviewers.get((int)but.getLayoutY()/40);
-    			
-    			theUser.removeTrustedReviewer(theDatabase, theUntrusted); //Clay Edit 21
-    			allReviewers.add(theUntrusted);
-    			
-    			populateUntrustedReviewers();
-    			populateTrustedReviewers();
-    			});
-			trustedReviewerPane.getChildren().addAll(removeTrust, reviewerName);
+				Button but = (Button) event.getSource();
+				User theUntrusted = trustedReviewers.get((int)but.getLayoutY()/40);
+				theUser.removeTrustedReviewer(theDatabase, theUntrusted);
+				allReviewers.add(theUntrusted);
+				populateUntrustedReviewers();
+				populateTrustedReviewers();
+			});
+
+			Button editWeight = new Button("Edit Weight");
+			setupButtonUI(editWeight, "Dialog", 12, 100, Pos.CENTER_LEFT, 300, (i * 40));
+
+			ReviewerTrust trust2 = theUser.getReviewerTrust(trustedUser.getUserName());
+			editWeight.setOnAction(e -> showEditWeightDialog(trust2));
+
+			trustedReviewerPane.getChildren().addAll(removeTrust, editWeight, reviewerName);
 		}
 	}
-	
+
 	private void populateUntrustedReviewers() {
-        untrustedReviewerPane.getChildren().clear();
-        trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
+		untrustedReviewerPane.getChildren().clear();
+		trustedReviewers = theDatabase.getTrustedReviewers(theUser.getUserName());
 		Text reviewerName;
 		Button giveTrust;
 		for(int i = 0; i < allReviewers.size(); i++) {
 			reviewerName = new Text(allReviewers.get(i).getUserName());
-			reviewerName.setLayoutX(100);
+			reviewerName.setLayoutX(10);
 			reviewerName.setLayoutY(15+(i*40));
 			giveTrust = new Button("Give Trust"); 
-			setupButtonUI(giveTrust, "Dialog", 12, 0, 
-            		Pos.CENTER, 0, (i * 40));
+			setupButtonUI(giveTrust, "Dialog", 12, 0, Pos.CENTER, 300, (i * 40));
 			giveTrust.setOnAction((event) -> {
-    			Button but = (Button) event.getSource();
-    			User theTrusted = allReviewers.get((int)but.getLayoutY()/40);
-    			
-    			theUser.addTrustedReviewer(theDatabase, theTrusted); //Clay Edit 21
-    			allReviewers.remove(theTrusted);
-    			
-    			populateUntrustedReviewers();
-    			populateTrustedReviewers();
-    			});
+				Button but = (Button) event.getSource();
+				User theTrusted = allReviewers.get((int)but.getLayoutY()/40);
+				theUser.addTrustedReviewer(theDatabase, theTrusted, 5);
+				allReviewers.remove(theTrusted);
+				populateUntrustedReviewers();
+				populateTrustedReviewers();
+			});
 			untrustedReviewerPane.getChildren().addAll(giveTrust, reviewerName);
 		}
 	}
-	
+
 	private void generateAllReviewers() {
-		//Set the list of all of the reviewers not on the trusted list. Make sure the current user is not on the list even if they are a reviewer
 		User reviewer;
 		boolean flag;
 		for(String username: theDatabase.getUserList()) {
@@ -324,26 +211,52 @@ public class GUIStudentTrustedReviewerPage{
 					flag = true;
 					break;}
 			}
-			
 			theDatabase.getUserAccountDetails(username);
 			if(theDatabase.getCurrentReviewerRole() && !username.equals(theUser.getUserName()) && !flag) {
 				reviewer = new User(theDatabase.getCurrentUsername(), theDatabase.getCurrentPassword(), theDatabase.getCurrentAdminRole(), theDatabase.getCurrentStudentRole(),
-						theDatabase.getCurrentReviewerRole(), theDatabase.getCurrentInstructorRole(), theDatabase.getCurrentStaffRole());
+					theDatabase.getCurrentReviewerRole(), theDatabase.getCurrentInstructorRole(), theDatabase.getCurrentStaffRole());
 				allReviewers.add(reviewer);
 			}
 		}
 	}
-	
+
+	private void showEditWeightDialog(ReviewerTrust trust) {
+		if (trust == null) {
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setTitle("Reviewer Not Found");
+			alert.setHeaderText(null);
+			alert.setContentText("This reviewer is not currently trusted or was not found in your list.");
+			alert.showAndWait();
+			return;
+		}
+
+		TextInputDialog dialog = new TextInputDialog(String.valueOf(trust.getWeight()));
+		dialog.setTitle("Edit Reviewer Weight");
+		dialog.setHeaderText("Change weight for " + trust.getReviewer().getUserName());
+		dialog.setContentText("New weight (1–10):");
+		dialog.showAndWait().ifPresent(newVal -> {
+			try {
+				int newWeight = Integer.parseInt(newVal);
+				if (newWeight >= 1 && newWeight <= 10) {
+					trust.setWeight(newWeight);
+					populateTrustedReviewers();
+				} else {
+					Alert invalid = new Alert(Alert.AlertType.WARNING, "Weight must be between 1 and 10.");
+					invalid.showAndWait();
+				}
+			} catch (NumberFormatException ex) {
+				Alert error = new Alert(Alert.AlertType.ERROR, "Invalid number entered.");
+				error.showAndWait();
+			}
+		});
+	}
+
 	private void performLogout() {
 		GUISystemStartUpPage.theSystemStartupPage.setup();
 	}
 
-	
 	private void performQuit() {
 		System.out.println("Perform Quit");
 		System.exit(0);
 	}
-
-	//Team functions
-	
 }
