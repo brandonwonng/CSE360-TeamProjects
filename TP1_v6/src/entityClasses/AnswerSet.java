@@ -34,6 +34,13 @@ public class AnswerSet {
 	public Answer getAnswer(int i) {
 		return answers.get(i);
 	}
+
+	public void removeAnswer(Answer currentAnswer) {
+	    if (answers.contains(currentAnswer)) {
+	        answers.remove(currentAnswer);
+	    }
+	}
+
 	
 //	//Filter the presented set of questions
 //	public AnswerSet filterQuestions(User user){
