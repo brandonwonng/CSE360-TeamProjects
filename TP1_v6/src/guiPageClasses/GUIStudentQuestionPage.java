@@ -65,7 +65,7 @@ public class GUIStudentQuestionPage {
     	private Button button_ViewMyUnresolved = new Button("View My Unresolved Questions");
 	private Button button_ViewResolved = new Button("View All Resolved Questions");
 	
-	private Button button_BackToStudentHomePage = new Button("Return to the Student Home Page");
+	private Button button_BackToHomePage = new Button("Return to the Home Page");
 	
 	private ScrollPane questionPaneScroll = new ScrollPane();
 	
@@ -180,9 +180,9 @@ public class GUIStudentQuestionPage {
 			    Pos.CENTER, 20, 350); // Adjust Y as needed based on layout
 		button_ViewRecentQuestions.setOnAction((event) -> {seeRecentQuestions();});
 		
-        setupButtonUI(button_BackToStudentHomePage, "Dialog", 18, 300, 
+        setupButtonUI(button_BackToHomePage, "Dialog", 18, 300, 
         		Pos.CENTER, WINDOW_WIDTH/2-150, 475);
-        button_BackToStudentHomePage.setOnAction((event) -> {goToStudentHomePage();});
+        button_BackToHomePage.setOnAction((event) -> {goToUserHomePage();});
 		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((event) -> {performLogout(); });
@@ -224,7 +224,7 @@ public class GUIStudentQuestionPage {
         theRoot.getChildren().addAll(label_PageTitle,
         		questionPaneScroll,
            		label_Purpose,
-        		button_BackToStudentHomePage, 
+        		button_BackToHomePage, 
         		button_ViewAllQuestions,
         		button_ViewUnresolved,
 			button_ViewResolved,
@@ -250,7 +250,7 @@ public class GUIStudentQuestionPage {
 		theRootPane.getChildren().addAll(label_PageTitle,
         		questionPaneScroll,
            		label_Purpose,
-        		button_BackToStudentHomePage, 
+        		button_BackToHomePage, 
         		button_ViewAllQuestions,
         		button_ViewUnresolved,
 			button_ViewResolved,
@@ -318,15 +318,57 @@ public class GUIStudentQuestionPage {
 	
 	**********************************************************************************************/
 	
-	private void goToStudentHomePage() {
-        // Proceed to the student account update page
-		if (GUISystemStartUpPage.theStudentHomePage == null) {
-			GUISystemStartUpPage.theStudentHomePage = 
-					new GUIStudentHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
-		}
-		else	
-			GUISystemStartUpPage.theStudentHomePage.setup();
+	private void goToUserHomePage() {
+	    String role = theUser.getRole(); // You might use getRoleName(), or getUserRole(), etc.
+
+	    switch (role.toLowerCase()) {
+	        case "student":
+	            if (GUISystemStartUpPage.theStudentHomePage == null) {
+	                GUISystemStartUpPage.theStudentHomePage =
+	                    new GUIStudentHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
+	            } else {
+	                GUISystemStartUpPage.theStudentHomePage.setup();
+	            }
+	            break;
+	        case "admin":
+	            if (GUISystemStartUpPage.theAdminHomePage == null) {
+	                GUISystemStartUpPage.theAdminHomePage =
+	                    new GUIAdminHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
+	            } else {
+	                GUISystemStartUpPage.theAdminHomePage.setup();
+	            }
+	            break;
+	        case "reviewer":
+	            if (GUISystemStartUpPage.theReviewerHomePage == null) {
+	                GUISystemStartUpPage.theReviewerHomePage =
+	                    new GUIReviewerHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
+	            } else {
+	                GUISystemStartUpPage.theReviewerHomePage.setup();
+	            }
+	            break;
+	        case "instructor":
+	            if (GUISystemStartUpPage.theInstructorHomePage == null) {
+	                GUISystemStartUpPage.theInstructorHomePage =
+	                    new GUIInstructorHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
+	            } else {
+	                GUISystemStartUpPage.theInstructorHomePage.setup();
+	            }
+	            break;
+	        case "staff":
+	            if (GUISystemStartUpPage.theStaffHomePage == null) {
+	                GUISystemStartUpPage.theStaffHomePage =
+	                    new GUIStaffHomePage(thePrimaryStage, theRootPane, theDatabase, theUser);
+	            } else {
+	                GUISystemStartUpPage.theStaffHomePage.setup();
+	            }
+	            break;
+	        // Add more cases if your system includes other roles
+	        default:
+	            System.err.println("Unknown role: " + role);
+	            break;
+	    }
 	}
+
 	
 	
 	private void performLogout() {
