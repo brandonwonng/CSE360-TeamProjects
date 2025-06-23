@@ -16,6 +16,8 @@ import entityClasses.QuestionSet;
 import entityClasses.Answer;
 import entityClasses.AnswerSet;
 import entityClasses.User;
+import javafx.scene.control.TextInputDialog; // John edit
+import java.util.Optional; // John edit
 
 /*******
  * <p> Title: GUIReviewerHomePage Class. </p>
@@ -238,23 +240,42 @@ public class GUIReviewerHomePage {
 		}
 	}
 
-	private void viewQuestionAnswers(Question q) {
-		/*This method allows a user to view all of the answers to a given question */
+    // John edit - method to write a review for an answer
+    private void viewQuestionAnswers(Question q) {
 
-		questionPane.getChildren().clear();
+        questionPane.getChildren().clear();
 
-		AnswerSet replies = q.getAnswers();
-		Answer ans;
+        AnswerSet replies = q.getAnswers();
+        Answer ans;
 
-		for (int i = 0; i < replies.getNumAnswers(); i++) {
-			ans = replies.getAnswer(i);
-			String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
+        for (int i = 0; i < replies.getNumAnswers(); i++) {
+                ans = replies.getAnswer(i);
+                String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
 
-			Text text = new Text(answerDisplay);
-			text.setLayoutX(0);
-			text.setLayoutY(30 + (i * 30));
+                Text text = new Text(answerDisplay);
+                text.setLayoutX(0);
+                text.setLayoutY(30 + (i * 40));
 
-			questionPane.getChildren().add(text);
-		}
-	}
+                Button writeReview = new Button("Write Review");
+                setupButtonUI(writeReview, "Dialog", 12, 0, Pos.CENTER_LEFT, 300, 15 + (i * 40));
+                final Answer currentAnswer = ans;
+                writeReview.setOnAction(evt -> {
+                        TextInputDialog dialog = new TextInputDialog();
+                        dialog.setTitle("Write Review");
+                        dialog.setHeaderText("Enter your review text");
+                        Optional<String> result = dialog.showAndWait();
+                        result.ifPresent(reviewText -> {
+                                Answer rev = new Answer();
+                                rev.setUser(theUser);
+                                rev.setQuestion(currentAnswer.getQuestion());
+                                rev.setText(reviewText);
+                                currentAnswer.addReview(rev);
+                                theDatabase.addReview(currentAnswer.getUser().getUserName(),
+                                                currentAnswer.getText(), theUser.getUserName(), reviewText);
+                        });
+                });
+
+                questionPane.getChildren().addAll(text, writeReview);
+        }
+}
 }
