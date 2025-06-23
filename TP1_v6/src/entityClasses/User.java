@@ -28,7 +28,10 @@ public class User {
     private boolean instructorRole;
     private boolean staffRole;
     private ArrayList<User> trustedReviewers = new ArrayList<>();
-	
+    private ArrayList<ReviewerTrust> trustedReviewerList = new ArrayList<>();
+    private ArrayList<ReviewerTrust> reviewerTrustList = new ArrayList<>();
+
+
     /*****
      * <p> Method: User() </p>
      * 
@@ -259,8 +262,9 @@ public class User {
 	 *
      */
     // Check if the chosen user is a reviewer, if they are add them to the list
-    public boolean addTrustedReviewer(Database db, User trustedUser) {
+    public boolean addTrustedReviewer(Database db, User trustedUser, int weight) {
 		this.trustedReviewers.add(trustedUser);
+		trustedReviewerList.add(new ReviewerTrust(trustedUser, weight));
 		//Clay Edit 21: This needs to include code that updates the database with a user pair for trusted reviewers
 		db.grantTrust(this.userName, trustedUser.getUserName());
 		return true;
@@ -297,5 +301,36 @@ public class User {
         if (staffRole) return "staff";
         return "unknown";
     }
+    
+
+    public int getReviewerWeight(String reviewerUserName) {
+        for (ReviewerTrust rt : trustedReviewerList) {
+            if (rt.getReviewer().getUserName().equals(reviewerUserName)) {
+                return rt.getWeight();
+            }
+        }
+        return 5; // default weight
+    }
+
+    public void setReviewerWeight(String reviewerUserName, int weight) {
+        for (ReviewerTrust rt : trustedReviewerList) {
+            if (rt.getReviewer().getUserName().equals(reviewerUserName)) {
+                rt.setWeight(weight);
+                return;
+            }
+        }
+    }
+    
+    public ReviewerTrust getReviewerTrust(String reviewerUserName) {
+        for (ReviewerTrust trust : trustedReviewerList) {
+            if (trust.getReviewer().getUserName().equals(reviewerUserName)) {
+                return trust;
+            }
+        }
+        return null; // not found
+    }
+
+
+
 
 }
