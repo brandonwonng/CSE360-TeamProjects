@@ -281,4 +281,21 @@ public class User {
 			db.removeTrust(this.userName, untrustedUser.getUserName());
 			return true;
     }
+    
+    /*****
+     * <p> Method: String getRole() </p>
+     *
+     * <p> Description: Returns the primary role of the user as a string. </p>
+     *
+     * @return a string such as "admin", "student", etc.
+     */
+    public String getRole() {
+        if (adminRole) return "admin";
+        if (studentRole) return "student";
+        if (reviewerRole) return "reviewer";
+        if (instructorRole) return "instructor";
+        if (staffRole) return "staff";
+        return "unknown";
+    }
+
 }
