@@ -17,6 +17,7 @@ import databaseClasses.Database;
 import entityClasses.User;
 import entityClasses.Question;
 import entityClasses.QuestionSet;
+import entityClasses.ReviewerTrust;
 import entityClasses.Answer;
 import entityClasses.AnswerSet;
 import entityClasses.PrivateMessage;
@@ -657,9 +658,19 @@ public class GUIStudentQuestionPage {
 		Button reviewButt;
 		
 		//Create line by line answer displays with one answer per line
-        for (int i = 0; i < replies.getNumAnswers()*2; i+=2) {
+		for (int i = 0; i < replies.getNumAnswers()*2; i+=2) {
             ans = replies.getAnswer(i/2);
-            String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
+            String reviewerDisplayName = ans.getUser().getUserName();
+
+            // Only show weight if the answer is from a reviewer
+            if (ans.getUser().getRole().equalsIgnoreCase("reviewer")) {
+                ReviewerTrust trust = theUser.getReviewerTrust(ans.getUser().getUserName());
+                if (trust != null) {
+                    reviewerDisplayName += " (Weight: " + trust.getWeight() + ")";
+                }
+            }
+
+            String answerDisplay = String.format("[%s]: %s", reviewerDisplayName, ans.getText());
             Text text = new Text(answerDisplay);
             text.setLayoutX(0);
             text.setLayoutY(50 + ((i+1) * 30));
@@ -718,21 +729,47 @@ public class GUIStudentQuestionPage {
             	    Optional<String> pmResult = pmDialog.showAndWait();
 
             	    pmResult.ifPresent(msg -> {
-            	        // Simulate sending the message (or store it later)
-            	    	currentAnswer.addPrivateMessage(new PrivateMessage(theUser, msg));
+            	        PrivateMessage pm = new PrivateMessage(currentAnswer.getUser(),theUser, msg, currentAnswer.getText());
+            	        currentAnswer.addPrivateMessage(pm);
 
-            	        // Show confirmation popup
+
             	        Alert confirmation = new Alert(Alert.AlertType.INFORMATION);
             	        confirmation.setTitle("Message Sent");
             	        confirmation.setHeaderText(null);
             	        confirmation.setContentText("Your private message was sent to " + currentAnswer.getUser().getUserName() + ".");
             	        confirmation.showAndWait();
             	    });
+
+
             	});
 
 
             }
             questionPane.getChildren().add(pmButton);
+            
+            if (theUser.getRole().equalsIgnoreCase("instructor")) {
+                Button deleteButton = new Button("Delete");
+                deleteButton.setFont(Font.font("Dialog", 12));
+                deleteButton.setLayoutX(350);
+                deleteButton.setLayoutY(35 + (i * 30));
+
+                deleteButton.setOnAction(e -> {
+                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirm.setTitle("Delete Answer");
+                    confirm.setHeaderText("Are you sure you want to delete this answer?");
+
+                    Optional<javafx.scene.control.ButtonType> confirmation = confirm.showAndWait();
+                    if (confirmation.isPresent() && confirmation.get() == javafx.scene.control.ButtonType.OK) {
+                        q.getAnswers().removeAnswer(currentAnswer);
+
+                        viewQuestionAnswers(q); // refresh the UI
+                    }
+                });
+
+                questionPane.getChildren().add(deleteButton);
+            }
+
+
          // Display private messages, only visible to sender or answer owner
             if (currentAnswer.getPrivateMessages() != null) {
                 int offset = 50 + (i * 30) + 20; // below the answer text
@@ -740,8 +777,9 @@ public class GUIStudentQuestionPage {
                 for (PrivateMessage pm : currentAnswer.getPrivateMessages()) {
                     boolean isSender = pm.getSender().getUserName().equals(theUser.getUserName());
                     boolean isRecipient = currentAnswer.getUser().getUserName().equals(theUser.getUserName());
+                    boolean isInstructor = theUser.getRole().equalsIgnoreCase("instructor");
 
-                    if (isSender || isRecipient) {
+                    if (isSender || isRecipient || isInstructor) {
                         Text pmText = new Text("[Private from " + pm.getSender().getUserName() + "]: " + pm.getContent());
                         pmText.setLayoutX(30); // indent from left edge
                         pmText.setLayoutY(offset);
@@ -793,7 +831,7 @@ public class GUIStudentQuestionPage {
 	        button.setOnAction((event) -> {
 	            Button but = (Button) event.getSource();
 	            int index = (int) (but.getLayoutY() - 50) /60;
-	            theUser.addTrustedReviewer(theDatabase, ans.getReviews().getAnswer(index).getUser());
+	            theUser.addTrustedReviewer(theDatabase, ans.getReviews().getAnswer(index).getUser(), 5);
 	            seeReviews(ans);
 	        });
 	        
