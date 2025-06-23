@@ -2,8 +2,10 @@ package guiPageClasses;
 
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
+//import javafx.scene.control.Alert;	//clay edits: the alert of this not being used was annoying me
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+//import javafx.scene.control.Alert.AlertType; //clay edits: the alert of this not being used was annoying me
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
@@ -12,7 +14,7 @@ import databaseClasses.Database;
 import entityClasses.User;
 
 /*******
- * <p> Title: GUIInstructorHomePage Class. </p>
+ * <p> Title: GUIReviewerHomePage Class. </p>
  * 
  * <p> Description: The Java/FX-based Single Role Home Page.</p>
  * 
@@ -41,16 +43,16 @@ public class GUIInstructorHomePage {
 	private Line line_Separator1 = new Line(20, 95, FCMainClass.WINDOW_WIDTH-20, 95);
 	
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
-	
+	//Clay Edit
+	private Button button_AskQuestion = new Button("Question Dashboard");
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
 
 	private Stage primaryStage;	
 	private Pane theRootPane;
 	private Database theDatabase;
-	@SuppressWarnings("unused")
 	private User theUser;
-
+//	private Alert alertNotImplemented = new Alert(AlertType.INFORMATION); //Clay edits: alert of it not being used was annoying me
 	/**********************************************************************************************
 
 	Constructors
@@ -59,7 +61,7 @@ public class GUIInstructorHomePage {
 
 	
 	/**********
-	 * <p> Method: GUIInstructorHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
+	 * <p> Method: GUIStudentHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
 	 * 
 	 * <p> Description: This method initializes all the elements of the graphical user interface.
 	 * This method determines the location, size, font, color, and change and event handlers for
@@ -78,7 +80,7 @@ public class GUIInstructorHomePage {
 	public GUIInstructorHomePage(Stage ps, Pane theRoot, Database database, User user) {
 		GUISystemStartUpPage.theInstructorHomePage = this;
 		
-		FCMainClass.activeHomePage = 4;
+		FCMainClass.activeHomePage = 2;
 
 		primaryStage = ps;
 		theRootPane = theRoot;
@@ -99,6 +101,9 @@ public class GUIInstructorHomePage {
 		
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
 		button_UpdateThisUser.setOnAction((event) -> {performUpdate(); });
+		//Clay Edits
+		setupButtonUI(button_AskQuestion, "Dialog", 18, 190, Pos.CENTER, 20, 110);
+	   	button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
 		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((event) -> {performLogout(); });
@@ -117,11 +122,12 @@ public class GUIInstructorHomePage {
 	 * content.</p>
 	 * 
 	 */
-	public void setup() {			
-	    theRootPane.getChildren().clear();
+	public void setup() {
+		theRootPane.getChildren().clear();		
 	    theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
 	        line_Separator4, 
+	        button_AskQuestion,//Clay Edit
 	        button_Logout,
 	        button_Quit
 	    );
@@ -173,15 +179,22 @@ public class GUIInstructorHomePage {
 				new GUIUserUpdatePage(primaryStage, theRootPane, theDatabase, theUser);
 		else
 			GUISystemStartUpPage.theUserUpdatePage.setup();	
-	}
-	
+	}	
 
+	
 	private void performLogout() {
 		GUISystemStartUpPage.theSystemStartupPage.setup();
 	}
+	//Clay edits
+	private void goToQuestions() {
+		if (GUISystemStartUpPage.theStudentQuestionPage == null)
+			GUISystemStartUpPage.theStudentQuestionPage = 
+				new GUIStudentQuestionPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theStudentQuestionPage.setup(theUser);//Clay Edit
+	}
 	
 	private void performQuit() {
-		System.out.println("Perform Quit");
 		System.exit(0);
 	}
 }
