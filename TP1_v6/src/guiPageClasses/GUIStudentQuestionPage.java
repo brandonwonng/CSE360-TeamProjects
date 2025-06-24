@@ -5,6 +5,7 @@ import java.util.Optional;
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -63,8 +64,9 @@ public class GUIStudentQuestionPage {
 	private Button button_ViewUnresolved = new Button("View All Unresolved Questions");
 	private Button button_ViewRecentQuestions = new Button("Recently Asked Questions");
 	private Button button_ViewMyAll = new Button("View All of My Questions");
-    	private Button button_ViewMyUnresolved = new Button("View My Unresolved Questions");
+    private Button button_ViewMyUnresolved = new Button("View My Unresolved Questions");
 	private Button button_ViewResolved = new Button("View All Resolved Questions");
+	private Button button_RequestReviewerRole = new Button("Request Reviewer Role");
 	
 	private Button button_BackToHomePage = new Button("Return to the Home Page");
 	
@@ -163,6 +165,24 @@ public class GUIStudentQuestionPage {
 		setupButtonUI(button_ViewMyAll, "Dialog", 18, 210,
                 Pos.CENTER, 20, 310);
         	button_ViewMyAll.setOnAction((event) -> {seeMyAll();});
+        	
+        //NOAH EDIT:	
+        setupButtonUI(button_RequestReviewerRole, "Dialog", 18, 210,
+        		Pos.CENTER, 20, 390);
+        
+    	button_RequestReviewerRole.setOnAction((event) -> {
+    	    theDatabase.submitReviewerRequest(theUser.getUserName());
+
+    	    // Update the button UI
+    	    button_RequestReviewerRole.setText("Request Sent");
+    	    button_RequestReviewerRole.setDisable(true);
+
+    	    Alert alert = new Alert(AlertType.INFORMATION);
+    	    alert.setTitle("Request Sent");
+    	    alert.setHeaderText(null);
+    	    alert.setContentText("Your request to become a reviewer has been sent to an instructor.");
+    	    alert.showAndWait();
+    	});
 		
 		// Initialize the dialog box for inputting answers/responses
 		TextInputDialog dialogAskQuestion = new TextInputDialog();
@@ -235,6 +255,7 @@ public class GUIStudentQuestionPage {
         		line_Separator4,
         		line_Separator1,
         		button_postQuestion,
+        		button_RequestReviewerRole,
         		button_Logout,
         		button_Quit
         		);
@@ -261,6 +282,7 @@ public class GUIStudentQuestionPage {
         		line_Separator4,
         		line_Separator1,
         		button_postQuestion,
+        		button_RequestReviewerRole,
         		button_Logout,
         		button_Quit
     		);
