@@ -3,4 +3,5 @@ module FoundationCodeBaseline2 {
 	requires java.sql;
 	
 	opens applicationMainMethodClasses to javafx.graphics, javafx.fxml;
+	opens guiPageClasses to javafx.base;
 }
