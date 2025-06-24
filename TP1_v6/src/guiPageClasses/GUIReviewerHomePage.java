@@ -52,7 +52,6 @@ public class GUIReviewerHomePage {
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
 
 	private Button button_ViewAllQuestions = new Button("View All Questions");
-	//NOAH EDITS: Add button for "View My Reviews"
 	private Button button_ViewMyReviews = new Button("View My Reviews");
 
 	private ScrollPane questionPaneScroll = new ScrollPane();
@@ -117,7 +116,7 @@ public class GUIReviewerHomePage {
 		setupButtonUI(button_ViewAllQuestions, "Dialog", 18, 150, Pos.CENTER, 20, 110);
 		button_ViewAllQuestions.setOnAction((event) -> { seeAllQuestions(); });
 
-		//NOAH EDITS: Set up View My Reviews button
+		//NOAH EDITS: 
 		setupButtonUI(button_ViewMyReviews, "Dialog", 18, 150, Pos.CENTER, 20, 150);
 		button_ViewMyReviews.setOnAction((event) -> { seeMyReviews(); });
 
@@ -156,7 +155,7 @@ public class GUIReviewerHomePage {
 			label_UserDetails,
 			button_UpdateThisUser,
 			button_ViewAllQuestions,
-			button_ViewMyReviews, // NOAH EDITS: Add to layout
+			button_ViewMyReviews, // NOAH EDITS
 			line_Separator1,
 			line_Separator4,
 			questionPaneScroll,
@@ -251,7 +250,7 @@ public class GUIReviewerHomePage {
 		}
 	}
 
-	//NOAH EDITS: Show reviews written by this reviewer, with private feedback counts
+	//NOAH EDITS:
 	private void seeMyReviews() {
 	    //Always reload latest questions/answers so private feedback is current!
 	    loadQuestionsFromDatabase();
@@ -270,8 +269,7 @@ public class GUIReviewerHomePage {
 
 	    for (int i = 0; i < myReviews.size(); i++) {
 	        Answer review = myReviews.get(i);
-
-	        // --- Get latest feedbacks for this review ---
+		    
 	        List<PrivateMessage> feedbacks = review.getPrivateMessages();
 	        int feedbackCount = (feedbacks != null) ? feedbacks.size() : 0;
 
@@ -298,7 +296,7 @@ public class GUIReviewerHomePage {
 	}
 
 
-	//NOAH EDITS: Helper to get all answers/reviews written by the reviewer
+	//NOAH EDITS
 	private ArrayList<Answer> getAllReviewsByReviewer(User reviewer) {
 	    ArrayList<Answer> allReviews = new ArrayList<>();
 	    for (int q = 0; q < questionSet.getNumQuestions(); q++) {
@@ -314,11 +312,10 @@ public class GUIReviewerHomePage {
 	    return allReviews;
 	}
 
-	//NOAH EDITS: Display the feedback messages for a review
+	//NOAH EDITS
 	private void seeMessagesForReview(Answer review) {
 	    questionPane.getChildren().clear();
 
-	    // --- Get messages directly from the review object ---
 	    List<PrivateMessage> feedbacks = review.getPrivateMessages();
 
 	    int yOffset = 85;
