@@ -16,8 +16,11 @@ import entityClasses.QuestionSet;
 import entityClasses.Answer;
 import entityClasses.AnswerSet;
 import entityClasses.User;
+import entityClasses.PrivateMessage; // Noah Edit
 import javafx.scene.control.TextInputDialog; // John edit
 import java.util.Optional; // John edit
+import java.util.ArrayList; // Noah Edit
+import java.util.List;
 
 /*******
  * <p> Title: GUIReviewerHomePage Class. </p>
@@ -49,6 +52,9 @@ public class GUIReviewerHomePage {
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
 
 	private Button button_ViewAllQuestions = new Button("View All Questions");
+	//NOAH EDITS: Add button for "View My Reviews"
+	private Button button_ViewMyReviews = new Button("View My Reviews");
+
 	private ScrollPane questionPaneScroll = new ScrollPane();
 	private Pane questionPane;
 	private QuestionSet questionSet = new QuestionSet();
@@ -111,6 +117,10 @@ public class GUIReviewerHomePage {
 		setupButtonUI(button_ViewAllQuestions, "Dialog", 18, 150, Pos.CENTER, 20, 110);
 		button_ViewAllQuestions.setOnAction((event) -> { seeAllQuestions(); });
 
+		//NOAH EDITS: Set up View My Reviews button
+		setupButtonUI(button_ViewMyReviews, "Dialog", 18, 150, Pos.CENTER, 20, 150);
+		button_ViewMyReviews.setOnAction((event) -> { seeMyReviews(); });
+
 		questionPane = new Pane();
 		questionPane.setLayoutX(WINDOW_WIDTH / 2 - 100);
 		questionPane.setLayoutY(100);
@@ -146,6 +156,7 @@ public class GUIReviewerHomePage {
 			label_UserDetails,
 			button_UpdateThisUser,
 			button_ViewAllQuestions,
+			button_ViewMyReviews, // NOAH EDITS: Add to layout
 			line_Separator1,
 			line_Separator4,
 			questionPaneScroll,
@@ -240,6 +251,106 @@ public class GUIReviewerHomePage {
 		}
 	}
 
+	//NOAH EDITS: Show reviews written by this reviewer, with private feedback counts
+	private void seeMyReviews() {
+	    //Always reload latest questions/answers so private feedback is current!
+	    loadQuestionsFromDatabase();
+
+	    questionPane.getChildren().clear();
+	    ArrayList<Answer> myReviews = getAllReviewsByReviewer(theUser);
+	    int yOffset = 20;
+
+	    if (myReviews == null || myReviews.size() == 0) {
+	        Text noReviews = new Text("You have not written any reviews yet.");
+	        noReviews.setLayoutX(20);
+	        noReviews.setLayoutY(yOffset);
+	        questionPane.getChildren().add(noReviews);
+	        return;
+	    }
+
+	    for (int i = 0; i < myReviews.size(); i++) {
+	        Answer review = myReviews.get(i);
+
+	        // --- Get latest feedbacks for this review ---
+	        List<PrivateMessage> feedbacks = review.getPrivateMessages();
+	        int feedbackCount = (feedbacks != null) ? feedbacks.size() : 0;
+
+	        String reviewSummary = String.format(
+	            "Review on Q: %s\nYour Review: %s\nPrivate Feedback Messages: %d",
+	            review.getQuestion().getText(),
+	            review.getText(),
+	            feedbackCount
+	        );
+
+	        Text reviewText = new Text(reviewSummary);
+	        reviewText.setLayoutX(20);
+	        reviewText.setLayoutY(yOffset + i * 80);
+
+	        Button viewFeedbackBtn = new Button("View Feedback");
+	        setupButtonUI(viewFeedbackBtn, "Dialog", 12, 130, Pos.CENTER, 400, yOffset - 10 + i * 80);
+	        final Answer reviewFinal = review;
+	        viewFeedbackBtn.setOnAction(e -> {
+	            seeMessagesForReview(reviewFinal);
+	        });
+
+	        questionPane.getChildren().addAll(reviewText, viewFeedbackBtn);
+	    }
+	}
+
+
+	//NOAH EDITS: Helper to get all answers/reviews written by the reviewer
+	private ArrayList<Answer> getAllReviewsByReviewer(User reviewer) {
+	    ArrayList<Answer> allReviews = new ArrayList<>();
+	    for (int q = 0; q < questionSet.getNumQuestions(); q++) {
+	        Question question = questionSet.getQuestion(q);
+	        AnswerSet answerSet = question.getAnswers();
+	        for (int a = 0; a < answerSet.getNumAnswers(); a++) {
+	            Answer answer = answerSet.getAnswer(a);
+	            if (answer.getUser() != null && answer.getUser().getUserName().equals(reviewer.getUserName())) {
+	                allReviews.add(answer);
+	            }
+	        }
+	    }
+	    return allReviews;
+	}
+
+	//NOAH EDITS: Display the feedback messages for a review
+	private void seeMessagesForReview(Answer review) {
+	    questionPane.getChildren().clear();
+
+	    // --- Get messages directly from the review object ---
+	    List<PrivateMessage> feedbacks = review.getPrivateMessages();
+
+	    int yOffset = 85;
+
+	    Text header = new Text("Private Feedback for Your Review:");
+	    header.setLayoutX(20);
+	    header.setLayoutY(30);
+	    questionPane.getChildren().add(header);
+
+	    Text reviewText = new Text(review.getText());
+	    reviewText.setLayoutX(40);
+	    reviewText.setLayoutY(55);
+	    questionPane.getChildren().add(reviewText);
+
+	    if (feedbacks == null || feedbacks.size() == 0) {
+	        Text none = new Text("No private feedback yet.");
+	        none.setLayoutX(20);
+	        none.setLayoutY(yOffset);
+	        questionPane.getChildren().add(none);
+	        return;
+	    }
+
+	    for (int i = 0; i < feedbacks.size(); i++) {
+	        PrivateMessage pm = feedbacks.get(i);
+	        Text pmText = new Text(String.format("[%s]: %s", pm.getSender().getUserName(), pm.getContent()));
+	        pmText.setLayoutX(20);
+	        pmText.setLayoutY(yOffset + i * 30);
+	        questionPane.getChildren().add(pmText);
+	    }
+	}
+
+
     // John edit - method to write a review for an answer
     private void viewQuestionAnswers(Question q) {
 
@@ -277,5 +388,5 @@ public class GUIReviewerHomePage {
 
                 questionPane.getChildren().addAll(text, writeReview);
         }
-}
+    }
 }
