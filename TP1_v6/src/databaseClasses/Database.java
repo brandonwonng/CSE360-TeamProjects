@@ -175,6 +175,13 @@ public class Database {
                         + "userName VARCHAR(255) PRIMARY KEY, "
                         + "otp VARCHAR(255))";
         statement.execute(otpTable);
+        
+      //NOAH EDITS: Table for reviewer role requests
+        String reviewerRequestTable = "CREATE TABLE IF NOT EXISTS reviewerRequestDB ("
+            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+            + "studentUsername VARCHAR(255), "
+            + "status VARCHAR(20) DEFAULT 'pending')"; // status: pending, approved, denied
+        statement.execute(reviewerRequestTable);
 }
 
 
@@ -1564,6 +1571,154 @@ public void updateMessageRead(String sender, String receiver, String content, St
         e.printStackTrace();
     }
 }
+
+	//NOAH EDITS: Submit a reviewer request for a student
+	/**
+	 * <p> Method: submitReviewerRequest </p>
+	 * <p> Description: Submit a request for a student to become a reviewer. 
+	 *      Only one pending request per student is allowed at a time. </p>
+	 * @param studentUsername the username of the student requesting reviewer role
+	 */
+	public void submitReviewerRequest(String studentUsername) {
+		// Check if there's already a pending request for this student
+		if (hasPendingReviewerRequest(studentUsername)) return;
+		String insert = "INSERT INTO reviewerRequestDB (studentUsername, status) VALUES (?, 'pending')";
+		try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+			pstmt.setString(1, studentUsername);
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//NOAH EDITS: Check if student has a pending reviewer request
+	/**
+	 * <p> Method: hasPendingReviewerRequest </p>
+	 * <p> Description: Checks if the specified student has a pending reviewer request. </p>
+	 * @param studentUsername the username of the student
+	 * @return true if there is a pending request, false otherwise
+	 */
+	public boolean hasPendingReviewerRequest(String studentUsername) {
+		String query = "SELECT COUNT(*) FROM reviewerRequestDB WHERE studentUsername = ? AND status = 'pending'";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, studentUsername);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1) > 0;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	//NOAH EDITS: Get all reviewer requests for instructor view
+	/**
+	 * <p> Method: getPendingReviewerRequests </p>
+	 * <p> Description: Retrieves all reviewer requests for instructor management, including
+	 *      pending, approved, and denied requests. </p>
+	 * @return a list of ReviewerRequestRow objects representing all reviewer requests
+	 */
+	public ArrayList<guiPageClasses.GUIInstructorHomePage.ReviewerRequestRow> getPendingReviewerRequests() {
+		ArrayList<guiPageClasses.GUIInstructorHomePage.ReviewerRequestRow> requests = new ArrayList<>();
+		String query = "SELECT id, studentUsername, status FROM reviewerRequestDB WHERE status = 'pending' OR status = 'denied' OR status = 'approved'";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				int reqId = rs.getInt("id");
+				String username = rs.getString("studentUsername");
+				String status = rs.getString("status");
+				requests.add(new guiPageClasses.GUIInstructorHomePage.ReviewerRequestRow(reqId, username, status));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return requests;
+	}
+	
+	//NOAH EDITS: Approve a reviewer request
+	/**
+	 * <p> Method: approveReviewerRequest </p>
+	 * <p> Description: Approves the reviewer request with the specified ID,
+	 *      updates its status, and sets the user's reviewer role to true. </p>
+	 * @param requestId the ID of the reviewer request to approve
+	 */
+	public void approveReviewerRequest(int requestId) {
+		// Get username, then approve in table and update user role
+		String getUser = "SELECT studentUsername FROM reviewerRequestDB WHERE id = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(getUser)) {
+			pstmt.setInt(1, requestId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				String username = rs.getString("studentUsername");
+				// Update request status
+				String updateRequest = "UPDATE reviewerRequestDB SET status = 'approved' WHERE id = ?";
+				try (PreparedStatement pstmt2 = connection.prepareStatement(updateRequest)) {
+					pstmt2.setInt(1, requestId);
+					pstmt2.executeUpdate();
+				}
+				// Update user table to grant reviewer role
+				updateUserRole(username, "Reviewer", "true");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//NOAH EDITS: Deny a reviewer request
+	/**
+	 * <p> Method: denyReviewerRequest </p>
+	 * <p> Description: Denies the reviewer request with the specified ID and sets its status to denied. </p>
+	 * @param requestId the ID of the reviewer request to deny
+	 */
+	public void denyReviewerRequest(int requestId) {
+		String update = "UPDATE reviewerRequestDB SET status = 'denied' WHERE id = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+			pstmt.setInt(1, requestId);
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//NOAH EDITS: Reset/allow new reviewer request after denial
+	/**
+	 * <p> Method: clearReviewerRequestsForUser </p>
+	 * <p> Description: Clears denied reviewer requests for a user so they may submit a new request. </p>
+	 * @param studentUsername the username of the student
+	 */
+	public void clearReviewerRequestsForUser(String studentUsername) {
+		String delete = "DELETE FROM reviewerRequestDB WHERE studentUsername = ? AND status = 'denied'";
+		try (PreparedStatement pstmt = connection.prepareStatement(delete)) {
+			pstmt.setString(1, studentUsername);
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//NOAH EDITS: Get status of latest reviewer request for a user (for button state)
+	/**
+	 * <p> Method: getReviewerRequestStatus </p>
+	 * <p> Description: Gets the status ('pending', 'approved', or 'denied') of the most recent reviewer request for the specified user. </p>
+	 * @param studentUsername the username of the student
+	 * @return status string if a request exists, null otherwise
+	 */
+	public String getReviewerRequestStatus(String studentUsername) {
+		String query = "SELECT status FROM reviewerRequestDB WHERE studentUsername = ? ORDER BY id DESC LIMIT 1";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, studentUsername);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString("status");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+
 	/*******
 	 * <p> Debugging method</p>
 	 * 
