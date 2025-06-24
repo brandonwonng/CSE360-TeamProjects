@@ -3,6 +3,7 @@ package guiPageClasses;
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
 //import javafx.scene.control.Alert;	//clay edits: the alert of this not being used was annoying me
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 //import javafx.scene.control.Alert.AlertType; //clay edits: the alert of this not being used was annoying me
@@ -13,8 +14,17 @@ import javafx.stage.Stage;
 import databaseClasses.Database;
 import entityClasses.User;
 
+//NOAH EDITS
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.util.Callback;
+
 /*******
- * <p> Title: GUIReviewerHomePage Class. </p>
+ * <p> Title: GUIInstructorHomePage Class. </p>
  * 
  * <p> Description: The Java/FX-based Single Role Home Page.</p>
  * 
@@ -53,6 +63,12 @@ public class GUIInstructorHomePage {
 	private Database theDatabase;
 	private User theUser;
 //	private Alert alertNotImplemented = new Alert(AlertType.INFORMATION); //Clay edits: alert of it not being used was annoying me
+
+	//NOAH EDITS
+	// Table and data for reviewer requests
+	private TableView<ReviewerRequestRow> reviewerRequestTable = new TableView<>();
+	private ObservableList<ReviewerRequestRow> reviewerRequestsList = FXCollections.observableArrayList();
+
 	/**********************************************************************************************
 
 	Constructors
@@ -61,7 +77,7 @@ public class GUIInstructorHomePage {
 
 	
 	/**********
-	 * <p> Method: GUIStudentHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
+	 * <p> Method: GUIInstructorHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
 	 * 
 	 * <p> Description: This method initializes all the elements of the graphical user interface.
 	 * This method determines the location, size, font, color, and change and event handlers for
@@ -111,10 +127,12 @@ public class GUIInstructorHomePage {
         setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
         button_Quit.setOnAction((event) -> {performQuit(); });
         
+        //NOAH EDITS: Set up the reviewer request table
+        setupReviewerRequestTable();
+
         setup();
 	}
 
-	
 	/**********
 	 * <p> Method: setup() </p>
 	 * 
@@ -128,6 +146,8 @@ public class GUIInstructorHomePage {
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
 	        line_Separator4, 
 	        button_AskQuestion,//Clay Edit
+	        //NOAH EDITS: Add the table to the GUI
+	        reviewerRequestTable,
 	        button_Logout,
 	        button_Quit
 	    );
@@ -166,7 +186,95 @@ public class GUIInstructorHomePage {
 		b.setLayoutY(y);		
 	}
 
-	
+	//NOAH EDITS: Sets up the TableView for reviewer requests
+	private void setupReviewerRequestTable() {
+		reviewerRequestTable.setLayoutX(20);
+		reviewerRequestTable.setLayoutY(170);
+		reviewerRequestTable.setMinWidth(670);
+		reviewerRequestTable.setMaxWidth(670);
+		reviewerRequestTable.setPrefHeight(340);
+
+		TableColumn<ReviewerRequestRow, String> colUsername = new TableColumn<>("Student Username");
+		colUsername.setCellValueFactory(new PropertyValueFactory<>("studentUsername"));
+		colUsername.setMinWidth(220);
+
+		TableColumn<ReviewerRequestRow, String> colStatus = new TableColumn<>("Status");
+		colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+		colStatus.setMinWidth(120);
+
+		TableColumn<ReviewerRequestRow, Button> colApprove = new TableColumn<>("Approve");
+		colApprove.setMinWidth(100);
+		colApprove.setCellFactory(new Callback<TableColumn<ReviewerRequestRow, Button>, TableCell<ReviewerRequestRow, Button>>() {
+			@Override
+			public TableCell<ReviewerRequestRow, Button> call(final TableColumn<ReviewerRequestRow, Button> param) {
+				return new TableCell<ReviewerRequestRow, Button>() {
+					final Button btn = new Button("Approve");
+					@Override
+					public void updateItem(Button item, boolean empty) {
+						super.updateItem(item, empty);
+						if (empty) {
+							setGraphic(null);
+						} else {
+							ReviewerRequestRow req = getTableView().getItems().get(getIndex());
+							btn.setDisable(!req.getStatus().equals("pending"));
+							btn.setOnAction(event -> {
+								theDatabase.approveReviewerRequest(req.getRequestId());
+								refreshReviewerRequests();
+								Alert alert = new Alert(Alert.AlertType.INFORMATION);
+								alert.setTitle("Request Approved");
+								alert.setHeaderText(null);
+								alert.setContentText("Approved reviewer role for " + req.getStudentUsername());
+								alert.showAndWait();
+							});
+							setGraphic(btn);
+						}
+					}
+				};
+			}
+		});
+
+		TableColumn<ReviewerRequestRow, Button> colDeny = new TableColumn<>("Deny");
+		colDeny.setMinWidth(100);
+		colDeny.setCellFactory(new Callback<TableColumn<ReviewerRequestRow, Button>, TableCell<ReviewerRequestRow, Button>>() {
+			@Override
+			public TableCell<ReviewerRequestRow, Button> call(final TableColumn<ReviewerRequestRow, Button> param) {
+				return new TableCell<ReviewerRequestRow, Button>() {
+					final Button btn = new Button("Deny");
+					@Override
+					public void updateItem(Button item, boolean empty) {
+						super.updateItem(item, empty);
+						if (empty) {
+							setGraphic(null);
+						} else {
+							ReviewerRequestRow req = getTableView().getItems().get(getIndex());
+							btn.setDisable(!req.getStatus().equals("pending"));
+							btn.setOnAction(event -> {
+								theDatabase.denyReviewerRequest(req.getRequestId());
+								refreshReviewerRequests();
+								Alert alert = new Alert(Alert.AlertType.INFORMATION);
+								alert.setTitle("Request Denied");
+								alert.setHeaderText(null);
+								alert.setContentText("Denied reviewer request for " + req.getStudentUsername());
+								alert.showAndWait();
+							});
+							setGraphic(btn);
+						}
+					}
+				};
+			}
+		});
+
+		reviewerRequestTable.getColumns().addAll(colUsername, colStatus, colApprove, colDeny);
+		refreshReviewerRequests();
+	}
+
+	//NOAH EDITS: Refreshes the data in the reviewer requests table
+	private void refreshReviewerRequests() {
+		reviewerRequestsList.clear();
+		reviewerRequestsList.addAll(theDatabase.getPendingReviewerRequests());
+		reviewerRequestTable.setItems(reviewerRequestsList);
+	}
+
 	/**********************************************************************************************
 
 	User Interface Actions for this page
@@ -196,5 +304,22 @@ public class GUIInstructorHomePage {
 	
 	private void performQuit() {
 		System.exit(0);
+	}
+
+	//NOAH EDITS: Simple POJO for reviewer request table rows
+	public static class ReviewerRequestRow {
+		private int requestId;
+		private String studentUsername;
+		private String status;
+
+		public ReviewerRequestRow(int requestId, String studentUsername, String status) {
+			this.requestId = requestId;
+			this.studentUsername = studentUsername;
+			this.status = status;
+		}
+
+		public int getRequestId() { return requestId; }
+		public String getStudentUsername() { return studentUsername; }
+		public String getStatus() { return status; }
 	}
 }
