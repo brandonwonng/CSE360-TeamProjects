@@ -6,7 +6,7 @@ public class WorkRequest {
 	private String	 			description;
 	private boolean				closed;
 	private ArrayList<String> 	workComments;
-	private WorkRequest			parent;	
+	private String			parent;	
 
 	public WorkRequest() {}
 	
@@ -15,7 +15,7 @@ public class WorkRequest {
 		description = desc;
 		closed = false;
 		workComments = new ArrayList<>();
-		parent = null;
+		parent = "";
 	}
 	
 	public WorkRequest(User user, String desc, boolean status) {
@@ -23,7 +23,14 @@ public class WorkRequest {
 		description = desc;
 		closed = status;
 		workComments = new ArrayList<>();
-		parent = null;
+		parent = "";
+	}
+	public WorkRequest(User user, String desc, boolean status, String parentDescription) {
+		originator = user;
+		description = desc;
+		closed = status;
+		workComments = new ArrayList<>();
+		parent = parentDescription;
 	}
 
 	public User getOriginator() {
@@ -38,7 +45,7 @@ public class WorkRequest {
 		return closed;
 	}
 	
-	public WorkRequest getParent() {
+	public String getParent() {
 		return parent;
 	}
 	
