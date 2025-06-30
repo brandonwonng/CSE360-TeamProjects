@@ -122,7 +122,7 @@ public class GUIInstructorHomePage {
 		setupButtonUI(button_AskQuestion, "Dialog", 18, 190, Pos.CENTER, 20, 110);
 	   	button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
 
-		setupButtonUI(button_facultyDash, "Dialog", 18, 190, Pos.CENTER, 200, 110);
+		setupButtonUI(button_facultyDash, "Dialog", 18, 190, Pos.CENTER, 220, 110);
 	   	button_facultyDash.setOnAction((event) -> {goToFacDash(); });
 		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
@@ -151,6 +151,7 @@ public class GUIInstructorHomePage {
 	        line_Separator4, 
 	        button_AskQuestion,//Clay Edit
 	        //NOAH EDITS: Add the table to the GUI
+		    button_facultyDash,
 	        reviewerRequestTable,
 	        button_Logout,
 	        button_Quit
