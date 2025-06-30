@@ -200,7 +200,8 @@ public class GUISystemStartUpPage {
 	 *
 	 */
 	public static GUIStudentQuestionPage theStudentQuestionPage = null; //clay edits
-
+	public static GUIStaffQuestionPage theStaffQuestionPage = null; //Clay HW4 Change
+	public static GUIFacultyDashPage theFacultyDashPage = null; //Clay HW4 Change
 	public static GUIStudentTrustedReviewerPage theStudentTrustedReviewerPage = null;
 	/**********************************************************************************************
 
@@ -581,7 +582,7 @@ public class GUISystemStartUpPage {
 					theSingleRoleDispatch.doSingleRoleDispatch(primaryStage, theRootPane, database, user);
 				}
 			// Staff roles
-			} else if (user.getInstructorRole()) {
+			} else if (user.getStaffRole()) {
 				loginResult = database.loginStaff(user);
 				if (loginResult) {
 					if (theSingleRoleDispatch == null)
