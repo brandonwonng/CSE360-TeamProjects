@@ -55,6 +55,7 @@ public class GUIInstructorHomePage {
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
 	//Clay Edit
 	private Button button_AskQuestion = new Button("Question Dashboard");
+	private Button button_facultyDash = new Button("Faculty Dashboard");
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
 
@@ -120,6 +121,9 @@ public class GUIInstructorHomePage {
 		//Clay Edits
 		setupButtonUI(button_AskQuestion, "Dialog", 18, 190, Pos.CENTER, 20, 110);
 	   	button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
+
+		setupButtonUI(button_facultyDash, "Dialog", 18, 190, Pos.CENTER, 200, 110);
+	   	button_facultyDash.setOnAction((event) -> {goToFacDash(); });
 		
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((event) -> {performLogout(); });
@@ -301,6 +305,15 @@ public class GUIInstructorHomePage {
 		else
 			GUISystemStartUpPage.theStudentQuestionPage.setup(theUser);//Clay Edit
 	}
+
+	private void goToFacDash() {
+		if (GUISystemStartUpPage.theFacultyDashPage == null)
+			GUISystemStartUpPage.theFacultyDashPage = 
+				new GUIFacultyDashPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theFacultyDashPage.setup(theUser);//Clay Edit
+	}
+
 	
 	private void performQuit() {
 		System.exit(0);
