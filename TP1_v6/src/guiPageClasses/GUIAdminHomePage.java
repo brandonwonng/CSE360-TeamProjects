@@ -70,6 +70,7 @@ public class GUIAdminHomePage {
     private Alert alertEmailError = new Alert(AlertType.INFORMATION);
     private Alert alertEmailSent = new Alert(AlertType.INFORMATION);
 	private Button button_ManageInvitations = new Button("Manage Invitations");
+		private Button button_facultyDash = new Button("Faculty Dashboard");
 	private Button button_SetOnetimePassword = new Button("Set a One-Time Password");
 	private Button button_DeleteUser = new Button("Delete a User");
 	private Button button_ListUsers = new Button("List All Users");
@@ -141,7 +142,10 @@ public class GUIAdminHomePage {
 	
 		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
 		button_Logout.setOnAction((event) -> {performLogout(); });
-    
+   		
+		setupButtonUI(button_facultyDash, "Dialog", 16, 250, Pos.CENTER, 300, 270);
+	   	button_facultyDash.setOnAction((event) -> {goToFacDash(); });
+
 		setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
 		button_Quit.setOnAction((event) -> {performQuit(); });
 		
@@ -216,6 +220,7 @@ public class GUIAdminHomePage {
     		button_SetOnetimePassword,
     		button_DeleteUser,
     		button_ListUsers,
+		button_facultyDash,
     		button_AddRemoveRoles,
     		line_Separator4, 
     		button_Logout,
@@ -373,6 +378,13 @@ public class GUIAdminHomePage {
 		new GUIListAllUsers(primaryStage, theRootPane, theDatabase, theUser);
 	}
 	
+	private void goToFacDash() {
+		if (GUISystemStartUpPage.theFacultyDashPage == null)
+			GUISystemStartUpPage.theFacultyDashPage = 
+				new GUIFacultyDashPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theFacultyDashPage.setup(theUser);//Clay Edit
+	}
 	private void addRemoveRoles() {
 		theRootPane.getChildren().clear();
 		new GUIAddRemoveRolesPage(primaryStage, theRootPane, theDatabase, theUser);
