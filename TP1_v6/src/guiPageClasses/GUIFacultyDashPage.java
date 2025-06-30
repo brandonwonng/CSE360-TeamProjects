@@ -333,7 +333,7 @@ public class GUIFacultyDashPage {
 			text.setLayoutY(60 + i*30);
 			
 			seeComments = new Button("See Comments");
-			setupButtonUI(seeComments, "Dialog", 12, 170, Pos.CENTER, 0, 45 + (i+1)*30);
+			setupButtonUI(seeComments, "Dialog", 12, 130, Pos.CENTER, 0, 45 + (i+1)*30);
 			seeComments.setOnAction((event) -> { Button but = (Button) event.getSource();
 				int index = (((int)but.getLayoutY() - 45) / 60);
 				viewComments(requests.get(index));
@@ -342,23 +342,42 @@ public class GUIFacultyDashPage {
 			if(request.getClosedStatus() && theUser.getInstructorRole()) {
 				reopenRequest = new Button("Reopen Request");
 				
-				setupButtonUI(reopenRequest, "Dialog", 12, 170, Pos.CENTER, 175, 45 + (i+1)*30);
+				TextInputDialog dialogReopenRequest = new TextInputDialog();
+				dialogReopenRequest.setTitle("Enter the new description");
+				dialogReopenRequest.setHeaderText("Enter the new description");
+				
+				setupButtonUI(reopenRequest, "Dialog", 12, 130, Pos.CENTER, 150, 45 + (i+1)*30);
 				reopenRequest.setOnAction((event) -> { Button but = (Button) event.getSource();
 					int index = ((int)but.getLayoutY() - 45) / 60;
-					theDatabase.reopenWorkRequest(requests.get(index).getDescription());
-					but.setDisable(true);});
+					result = dialogReopenRequest.showAndWait();
+					if(result.isPresent()) {
+						theDatabase.reopenWorkRequest(theUser.getUserName() ,requests.get(index).getDescription(), result.get());
+						but.setDisable(true);
+						dialogReopenRequest.getEditor().clear();
+						}
+					});
 				messagePane.getChildren().add(reopenRequest);
 			}
 			else if(!request.getClosedStatus() && theUser.getAdminRole()){
 				closeRequest = new Button("Close Request");
 				
-				setupButtonUI(closeRequest, "Dialog", 12, 170, Pos.CENTER, 175, 45 + (i+1)*30);
+				setupButtonUI(closeRequest, "Dialog", 12, 130, Pos.CENTER, 150, 45 + (i+1)*30);
 				closeRequest.setOnAction((event) -> {Button but = (Button) event.getSource();
 				int index = ((int)but.getLayoutY() - 45) / 60;
 				theDatabase.closeWorkRequest(requests.get(index).getDescription());
 				but.setDisable(true);});
 				
 				messagePane.getChildren().add(closeRequest);
+			}
+			if(request.getParent()!=null && request.getParent() != "") {
+				Button goToParentComments = new Button("See Parent Comments");
+				setupButtonUI(goToParentComments, "Dialog", 12, 130 , Pos.CENTER, 300, 45 + (i+1)*30);
+				goToParentComments.setOnAction((event) -> {Button but = (Button) event.getSource();
+				int index = ((int)but.getLayoutY() - 45) / 60;
+				WorkRequest parent = new WorkRequest(null, requests.get(index).getParent());
+				viewComments(parent);				
+				});
+				messagePane.getChildren().add(goToParentComments);
 			}
 			messagePane.getChildren().addAll(text, seeComments);
 			
