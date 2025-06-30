@@ -9,6 +9,7 @@ import entityClasses.User;
 import entityClasses.Question; // John edit
 import entityClasses.Answer; // John edit
 import entityClasses.PrivateMessage; // Clay edit
+import entityClasses.WorkRequest; // Clay edit
 /*******
  * <p> Title: Database Class. </p>
  * 
