@@ -153,6 +153,7 @@ public class Database {
                 + "id INT AUTO_INCREMENT PRIMARY KEY, "
                 + "originator VARCHAR(255), "
                 + "description VARCHAR(255), "
+                + "parentDescription VARCHAR(255), "
                 + "closed BOOL DEFAULT FALSE)";
     statement.execute(workRequestTable);
     
@@ -1653,11 +1654,27 @@ public boolean logFacultyMessage(String sender, String content) {//Clay HW4 Chan
 
 //Clay TP4 Edits
 public boolean createWorkRequest(String originator, String description) {
-	String insert = "INSERT INTO workRequestDB (originator, description, closed)"
-            + " VALUES (?, ?, FALSE)";
+	String insert = "INSERT INTO workRequestDB (originator, description, parentDescription, closed)"
+            + " VALUES (?, ?, ?, FALSE)";
 	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
 	    pstmt.setString(1, originator);
 	    pstmt.setString(2, description);
+	    pstmt.setString(3,"");
+	    pstmt.executeUpdate();
+	    return true;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    return false;
+	}
+}
+
+public boolean createWorkRequest(String originator, String description, String parentDescription) {
+	String insert = "INSERT INTO workRequestDB (originator, description, parentDescription, closed)"
+            + " VALUES (?, ?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, originator);
+	    pstmt.setString(2, description);
+	    pstmt.setString(3, parentDescription);
 	    pstmt.executeUpdate();
 	    return true;
 	} catch (SQLException e) {
@@ -1676,24 +1693,18 @@ public void closeWorkRequest(String description) {
     }
 }
 
-public void reopenWorkRequest(String description) {
-    String update = "UPDATE workRequestDB SET closed = FALSE WHERE description = ?";
-    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
-        pstmt.setString(1, description);
-        pstmt.executeUpdate();
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
+public void reopenWorkRequest(String originator, String parentDescription, String description) {
+	createWorkRequest(originator, String.format("Reopened Request: %s", description), parentDescription);
 }
 
 public ArrayList<WorkRequest> getAllRequests() {
 	ArrayList<WorkRequest> requests = new ArrayList<>();
-	String query = "SELECT originator, description, closed FROM workRequestDB";
+	String query = "SELECT originator, description, parentDescription, closed FROM workRequestDB";
     try (PreparedStatement pstmt = connection.prepareStatement(query)) {
         ResultSet rs = pstmt.executeQuery();
         while (rs.next()) {
         	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
-        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), rs.getBoolean("closed"));
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), rs.getBoolean("closed"), rs.getString("parentDescription"));
         	requests.add(request);
         }
     } catch (SQLException e) {
