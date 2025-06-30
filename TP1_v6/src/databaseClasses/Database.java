@@ -147,8 +147,356 @@ public class Database {
 	                + "acceptance BOOL DEFAULT FALSE)";
         statement.execute(reviewTable);
 		
+        //Clay TP4 Changes
+        String workRequestTable = "CREATE TABLE IF NOT EXISTS workRequestDB ("
+                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                + "originator VARCHAR(255), "
+                + "description VARCHAR(255), "
+                + "closed BOOL DEFAULT FALSE)";
+    statement.execute(workRequestTable);
+    
+    	String workCommentTable = "CREATE TABLE IF NOT EXISTS workCommentDB ("
+            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+            + "commentingUser VARCHAR(255), "
+            + "parentDescription VARCHAR(255), "
+            + "commentContent VARCHAR(255))";
+    statement.execute(workCommentTable);	
+		
 	//Clay edit 21: Table for storing Trusted User relationships
-        String trustTable = "CREATE TABLE IF NOT EXISTS trustDB ("
+        String trustTable =//Clay TP4 Edits
+public boolean createWorkRequest(String originator, String description) {
+	String insert = "INSERT INTO workRequestDB (originator, description, closed)"
+            + " VALUES (?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, originator);
+	    pstmt.setString(2, description);
+	    pstmt.executeUpdate();
+	    return true;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    return false;
+	}
+}
+
+public void closeWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = TRUE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public void reopenWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = FALSE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public ArrayList<WorkRequest> getAllRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description, closed FROM workRequestDB";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), rs.getBoolean("closed"));
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllClosedRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = TRUE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), true);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllOpenRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = FALSE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), false);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public void addRequestComment(User user, String requestDescription, String comment) {
+	String insert = "INSERT INTO workCommentDB (commentingUser, parentDescription, commentContent)"
+            + " VALUES (?, ?, ?)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, user.getUserName());
+	    pstmt.setString(2, requestDescription);
+	    pstmt.setString(3, comment);
+	    pstmt.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+}
+
+public ArrayList<PrivateMessage> getComments(String parentDescription){
+	ArrayList<PrivateMessage> //Clay TP4 Edits
+public boolean createWorkRequest(String originator, String description) {
+	String insert = "INSERT INTO workRequestDB (originator, description, closed)"
+            + " VALUES (?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, originator);
+	    pstmt.setString(2, description);
+	    pstmt.executeUpdate();
+	    return true;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    return false;
+	}
+}
+
+public void closeWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = TRUE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public void reopenWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = FALSE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public ArrayList<WorkRequest> getAllRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description, closed FROM workRequestDB";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), rs.getBoolean("closed"));
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllClosedRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = TRUE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), true);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllOpenRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = FALSE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), false);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public void addRequestComment(User user, String requestDescription, String comment) {
+	String insert = "INSERT INTO workCommentDB (commentingUser, parentDescription, commentContent)"
+            + " VALUES (?, ?, ?)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, user.getUserName());
+	    pstmt.setString(2, requestDescription);
+	    pstmt.setString(3, comment);
+	    pstmt.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}//Clay TP4 Edits
+public boolean createWorkRequest(String originator, String description) {
+	String insert = "INSERT INTO workRequestDB (originator, description, closed)"
+            + " VALUES (?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, originator);
+	    pstmt.setString(2, description);
+	    pstmt.executeUpdate();
+	    return true;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    return false;
+	}
+}
+
+public void closeWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = TRUE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public void reopenWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = FALSE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public ArrayList<WorkRequest> getAllRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description, closed FROM workRequestDB";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), rs.getBoolean("closed"));
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllClosedRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = TRUE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), true);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllOpenRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = FALSE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), false);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public void addRequestComment(User user, String requestDescription, String comment) {
+	String insert = "INSERT INTO workCommentDB (commentingUser, parentDescription, commentContent)"
+            + " VALUES (?, ?, ?)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, user.getUserName());
+	    pstmt.setString(2, requestDescription);
+	    pstmt.setString(3, comment);
+	    pstmt.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+}
+
+public ArrayList<PrivateMessage> getComments(String parentDescription){
+	ArrayList<PrivateMessage> comments = new ArrayList<>();
+	String query = "SELECT commentingUser, commentContent FROM workCommentDB WHERE parentDescription = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+    	pstmt.setString(1, parentDescription);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User sender = new User(rs.getString("commentingUser"), "", false, false, false, false, false);
+        	PrivateMessage comment = new PrivateMessage(sender, rs.getString("commentContent"));
+        	comments.add(comment);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return comments;
+}
+}
+
+public ArrayList<PrivateMessage> getComments(String parentDescription){
+	ArrayList<PrivateMessage> comments = new ArrayList<>();
+	String query = "SELECT commentingUser, commentContent FROM workCommentDB WHERE parentDescription = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+    	pstmt.setString(1, parentDescription);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User sender = new User(rs.getString("commentingUser"), "", false, false, false, false, false);
+        	PrivateMessage comment = new PrivateMessage(sender, rs.getString("commentContent"));
+        	comments.add(comment);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return comments;
+}comments = new ArrayList<>();
+	String query = "SELECT commentingUser, commentContent FROM workCommentDB WHERE parentDescription = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+    	pstmt.setString(1, parentDescription);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User sender = new User(rs.getString("commentingUser"), "", false, false, false, false, false);
+        	PrivateMessage comment = new PrivateMessage(sender, rs.getString("commentContent"));
+        	comments.add(comment);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return comments;
+} "CREATE TABLE IF NOT EXISTS trustDB ("
 	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	                + "userGivingTrust VARCHAR(255), "
 	                + "userBeingTrusted VARCHAR(255))";
@@ -1633,6 +1981,119 @@ public boolean logFacultyMessage(String sender, String content) {//Clay HW4 Chan
 	    e.printStackTrace();
 	    return false;
 	}
+}
+
+//Clay TP4 Edits
+public boolean createWorkRequest(String originator, String description) {
+	String insert = "INSERT INTO workRequestDB (originator, description, closed)"
+            + " VALUES (?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, originator);
+	    pstmt.setString(2, description);
+	    pstmt.executeUpdate();
+	    return true;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    return false;
+	}
+}
+
+public void closeWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = TRUE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public void reopenWorkRequest(String description) {
+    String update = "UPDATE workRequestDB SET closed = FALSE WHERE description = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+        pstmt.setString(1, description);
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public ArrayList<WorkRequest> getAllRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description, closed FROM workRequestDB";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), rs.getBoolean("closed"));
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllClosedRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = TRUE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), true);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public ArrayList<WorkRequest> getAllOpenRequests() {
+	ArrayList<WorkRequest> requests = new ArrayList<>();
+	String query = "SELECT originator, description FROM workRequestDB WHERE closed = FALSE";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User originator = new User(rs.getString("originator"), "", false, false, false, false, false);
+        	WorkRequest request = new WorkRequest(originator, rs.getString("description"), false);
+        	requests.add(request);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return requests;
+}
+
+public void addRequestComment(User user, String requestDescription, String comment) {
+	String insert = "INSERT INTO workCommentDB (commentingUser, parentDescription, commentContent)"
+            + " VALUES (?, ?, ?)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, user.getUserName());
+	    pstmt.setString(2, requestDescription);
+	    pstmt.setString(3, comment);
+	    pstmt.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+}
+
+public ArrayList<PrivateMessage> getComments(String parentDescription){
+	ArrayList<PrivateMessage> comments = new ArrayList<>();
+	String query = "SELECT commentingUser, commentContent FROM workCommentDB WHERE parentDescription = ?";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+    	pstmt.setString(1, parentDescription);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User sender = new User(rs.getString("commentingUser"), "", false, false, false, false, false);
+        	PrivateMessage comment = new PrivateMessage(sender, rs.getString("commentContent"));
+        	comments.add(comment);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+	return comments;
 }
 	//NOAH EDITS: Submit a reviewer request for a student
 	/**
