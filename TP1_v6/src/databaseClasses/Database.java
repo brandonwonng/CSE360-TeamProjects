@@ -153,7 +153,14 @@ public class Database {
 	                + "userGivingTrust VARCHAR(255), "
 	                + "userBeingTrusted VARCHAR(255))";
         statement.execute(trustTable);
-        
+	//Edit to store messages for the faculty dashboard
+        String facultyTable = "CREATE TABLE IF NOT EXISTS facultyDB ("
+                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                + "sendingUser VARCHAR(255), "
+                + "messageText VARCHAR(255),"
+                + "parentText VARCHAR(255),"
+                + "read BOOL DEFAULT FALSE)"; //Clay Edit 22
+    statement.execute(facultyTable);
       //Clay edit 21: Table for storing Private Messages
         String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
 	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
@@ -1571,7 +1578,62 @@ public void updateMessageRead(String sender, String receiver, String content, St
         e.printStackTrace();
     }
 }
+/******* Clay edit 22: method to retrieve trusted Users
+* Retrieve all reviews for a particular answer.
+* @return list of PrivateMessage objects representing all of the messages sent as feedback 
+*/
+public ArrayList<PrivateMessage> getAllPrivateMessages() {//Clay HW4 Change
+    ArrayList<PrivateMessage> messages = new ArrayList<>();
+    String query = "SELECT sendingUser, receivingUser, messageText, parentText, read FROM messageDB";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        User receiver;
+        while (rs.next()) {
+        	 receiver = new User(rs.getString("receivingUser"), "", false, false, false, false, false);
+        	User sender = new User(rs.getString("sendingUser"), "", false, false, false, false, false);
+        	PrivateMessage mesg = new PrivateMessage(receiver, sender, rs.getString("messageText"), rs.getString("parentText"));
+            messages.add(mesg);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return messages;
+}
 
+/*******method to retrieve trusted Users
+* Retrieve all reviews for a particular answer.
+* @return list of PrivateMessage objects representing all of the messages sent as feedback 
+*/
+public ArrayList<PrivateMessage> getAllFacultyMessages() {//Clay HW4 Change
+    ArrayList<PrivateMessage> messages = new ArrayList<>();
+    String query = "SELECT sendingUser, messageText FROM facultyDB";
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+        	User sender = new User(rs.getString("sendingUser"), "", false, false, false, false, false);
+        	PrivateMessage mesg = new PrivateMessage(null, sender, rs.getString("messageText"), "");
+            messages.add(mesg);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return messages;
+}
+
+public boolean logFacultyMessage(String sender, String content) {//Clay HW4 Change
+    String insert = "INSERT INTO facultyDB (sendingUser, messageText, parentText, read)"
+            + " VALUES (?, ?, ?, FALSE)";
+	try (PreparedStatement pstmt = connection.prepareStatement(insert)) {
+	    pstmt.setString(1, sender);
+	    pstmt.setString(2, content);
+	    pstmt.setString(3, "");
+	    pstmt.executeUpdate();
+	    return true;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    return false;
+	}
+}
 	//NOAH EDITS: Submit a reviewer request for a student
 	/**
 	 * <p> Method: submitReviewerRequest </p>
