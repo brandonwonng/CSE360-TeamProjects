@@ -146,7 +146,7 @@ public class GUIFacultyDashPage {
 			button_createNewWorkRequest.setOnAction((event) -> {result = dialogNewWork.showAndWait();
 			if(result.isPresent()) {
 				theDatabase.createWorkRequest(theUser.getUserName(), result.get());
-				dialogNewWork.close();
+				dialogNewWork.getEditor().clear();
 			}
 			});
 			
@@ -381,6 +381,7 @@ public class GUIFacultyDashPage {
 		submitUpdate.setOnAction((event) -> {result = dialogSendMessage.showAndWait();
 		if(result.isPresent()) {
 				theDatabase.addRequestComment(theUser, request.getDescription(), result.get());
+				dialogSendMessage.getEditor().clear();
 				viewComments(request);
 			}
 		});
