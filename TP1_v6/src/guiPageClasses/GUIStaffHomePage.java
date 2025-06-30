@@ -36,7 +36,8 @@ public class GUIStaffHomePage {
 	private Label label_PageTitle = new Label();
 	private Label label_UserDetails = new Label();
 	private Button button_UpdateThisUser = new Button("Account Update");
-
+	private Button button_Questions = new Button("Question Page");
+	private Button button_FacDash = new Button("Faculty Dashboard");
 	
 	private Line line_Separator1 = new Line(20, 95, FCMainClass.WINDOW_WIDTH-20, 95);
 	
@@ -104,7 +105,13 @@ public class GUIStaffHomePage {
         
         setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
         button_Quit.setOnAction((event) -> {performQuit(); });
+
+        setupButtonUI(button_Questions, "Dialog", 18, 250, Pos.CENTER, 0, 250);
+        button_Questions.setOnAction((event) -> {goToQuestions(); });
         
+        setupButtonUI(button_FacDash, "Dialog", 18, 250, Pos.CENTER, 0, 150);
+        button_FacDash.setOnAction((event) -> {goToFacDash(); });
+		
         setup();
 	}
 
@@ -121,6 +128,8 @@ public class GUIStaffHomePage {
 	    theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
 	        line_Separator4, 
+		button_Questions,
+	        button_FacDash,
 	        button_Logout,
 	        button_Quit
 	    );
@@ -165,6 +174,22 @@ public class GUIStaffHomePage {
 	User Interface Actions for this page
 	
 	**********************************************************************************************/
+	private void goToQuestions() {
+		if (GUISystemStartUpPage.theStaffQuestionPage == null)
+			GUISystemStartUpPage.theStaffQuestionPage = 
+				new GUIStaffQuestionPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theStaffQuestionPage.setup(theUser);//Clay Edit
+	}
+	
+	private void goToFacDash() {
+		if (GUISystemStartUpPage.theFacultyDashPage == null)
+			GUISystemStartUpPage.theFacultyDashPage = 
+				new GUIFacultyDashPage(primaryStage, theRootPane, theDatabase, theUser);
+		else
+			GUISystemStartUpPage.theFacultyDashPage.setup(theUser);//Clay Edit
+	}
+
 	
 	private void performUpdate () {
 		if (GUISystemStartUpPage.theUserUpdatePage == null)
@@ -173,8 +198,6 @@ public class GUIStaffHomePage {
 		else
 			GUISystemStartUpPage.theUserUpdatePage.setup();	
 	}
-	
-
 	
 	private void performLogout() {
 		GUISystemStartUpPage.theSystemStartupPage.setup();
