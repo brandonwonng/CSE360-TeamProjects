@@ -2,9 +2,11 @@ package guiPageClasses;
 
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
@@ -58,6 +60,7 @@ public class GUIReviewerHomePage {
 	private Pane questionPane;
 	private QuestionSet questionSet = new QuestionSet();
 	private Question quest;
+	private Button button_ReviewerProfile = new Button("My Profile");
 
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
@@ -129,6 +132,10 @@ public class GUIReviewerHomePage {
 		questionPaneScroll.setLayoutY(100);
 		questionPaneScroll.setMaxSize(WINDOW_WIDTH / 2 + 100, 360);
 		questionPaneScroll.setMinSize(WINDOW_WIDTH / 2 + 100, 360);
+		
+		setupButtonUI(button_ReviewerProfile, "Dialog", 18, 150, Pos.CENTER, 20, 190);
+		button_ReviewerProfile.setOnAction((event) -> { showReviewerProfile(); });
+
 
 		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
 		button_Logout.setOnAction((event) -> { performLogout(); });
@@ -156,6 +163,7 @@ public class GUIReviewerHomePage {
 			button_UpdateThisUser,
 			button_ViewAllQuestions,
 			button_ViewMyReviews, // NOAH EDITS
+			button_ReviewerProfile, //BRANDON EDIT
 			line_Separator1,
 			line_Separator4,
 			questionPaneScroll,
@@ -295,8 +303,7 @@ public class GUIReviewerHomePage {
 	    }
 	}
 
-
-	//NOAH EDITS
+	//BRANDON EDIT
 	private ArrayList<Answer> getAllReviewsByReviewer(User reviewer) {
 	    ArrayList<Answer> allReviews = new ArrayList<>();
 	    for (int q = 0; q < questionSet.getNumQuestions(); q++) {
@@ -304,13 +311,19 @@ public class GUIReviewerHomePage {
 	        AnswerSet answerSet = question.getAnswers();
 	        for (int a = 0; a < answerSet.getNumAnswers(); a++) {
 	            Answer answer = answerSet.getAnswer(a);
-	            if (answer.getUser() != null && answer.getUser().getUserName().equals(reviewer.getUserName())) {
-	                allReviews.add(answer);
+	            ArrayList<Answer> reviews = theDatabase.getReviewsForAnswer(answer.getUser().getUserName(), answer.getText());
+	            for (Answer review : reviews) {
+	                if (review.getUser() != null && review.getUser().getUserName().equals(reviewer.getUserName())) {
+	                    review.setQuestion(question);
+	                    answer.addReview(review);     
+	                    allReviews.add(review);
+	                }
 	            }
 	        }
 	    }
 	    return allReviews;
 	}
+
 
 	//NOAH EDITS
 	private void seeMessagesForReview(Answer review) {
@@ -386,4 +399,41 @@ public class GUIReviewerHomePage {
                 questionPane.getChildren().addAll(text, writeReview);
         }
     }
+    
+    private void showReviewerProfile() {
+        questionPane.getChildren().clear();
+
+        String experience = theDatabase.getReviewerExperience(theUser.getUserName());
+
+        Text header = new Text("My Reviewer Profile");
+        header.setLayoutX(20);
+        header.setLayoutY(30);
+
+        Text expLabel = new Text("Experience:");
+        expLabel.setLayoutX(20);
+        expLabel.setLayoutY(60);
+
+        TextArea experienceArea = new TextArea(experience);
+        experienceArea.setLayoutX(20);
+        experienceArea.setLayoutY(80);
+        experienceArea.setPrefSize(500, 100);
+
+        Button saveBtn = new Button("Save");
+        setupButtonUI(saveBtn, "Dialog", 14, 100, Pos.CENTER, 20, 190);
+        saveBtn.setOnAction(e -> {
+            String newExp = experienceArea.getText();
+            theDatabase.saveReviewerExperience(theUser.getUserName(), newExp);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Profile Saved");
+            alert.setHeaderText(null);
+            alert.setContentText("Your experience profile has been saved!");
+            alert.showAndWait();
+        });
+
+
+        questionPane.getChildren().addAll(header, expLabel, experienceArea, saveBtn);
+    }
+
+
 }
