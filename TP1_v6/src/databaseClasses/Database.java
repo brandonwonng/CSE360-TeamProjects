@@ -178,15 +178,19 @@ public class Database {
                 + "parentText VARCHAR(255),"
                 + "read BOOL DEFAULT FALSE)"; //Clay Edit 22
     statement.execute(facultyTable);
-      //Clay edit 21: Table for storing Private Messages
-        String messageTable = "CREATE TABLE IF NOT EXISTS messageDB ("
-	                + "id INT AUTO_INCREMENT PRIMARY KEY, "
-	                + "sendingUser VARCHAR(255), "
-	                + "receivingUser VARCHAR(255), "
-	                + "messageText VARCHAR(255),"
-	                + "parentText VARCHAR(255),"
-	                + "read BOOL DEFAULT FALSE)"; //Clay Edit 22
-        statement.execute(messageTable);
+     //BRANDON edit 21: Table for storing Private Messages
+    	String dropMessageDB = "DROP TABLE IF EXISTS messageDB";
+    	statement.execute(dropMessageDB);
+
+    	String messageDB = "CREATE TABLE messageDB ("
+        + "id INT AUTO_INCREMENT PRIMARY KEY, "
+        + "sendingUser VARCHAR(255), "
+        + "receivingUser VARCHAR(255), "
+        + "messageText VARCHAR(255), "
+        + "parentText VARCHAR(255), "
+        + "read BOOL DEFAULT FALSE)";
+    	statement.execute(messageDB);
+
 		// Create the invitation codes table
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
 	            + "code VARCHAR(10) PRIMARY KEY, "
@@ -206,6 +210,12 @@ public class Database {
             + "studentUsername VARCHAR(255), "
             + "status VARCHAR(20) DEFAULT 'pending')"; // status: pending, approved, denied
         statement.execute(reviewerRequestTable);
+        
+        String reviewerProfileTable = "CREATE TABLE IF NOT EXISTS reviewerProfileDB ("
+        	    + "userName VARCHAR(255) PRIMARY KEY, "
+        	    + "experience TEXT)";
+        statement.execute(reviewerProfileTable);
+
 }
 
 
@@ -1919,6 +1929,61 @@ public ArrayList<PrivateMessage> getComments(String parentDescription){
 		}
 		return null;
 	}
+	
+	public String getReviewerExperience(String reviewerName) {
+	    String query = "SELECT experience FROM reviewerProfileDB WHERE userName = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, reviewerName);
+	        ResultSet rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	            return rs.getString("experience");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return ""; // Return blank if not found
+	}
+
+	public void saveReviewerExperience(String reviewerName, String experience) {
+	    String insertOrUpdate = "MERGE INTO reviewerProfileDB (userName, experience) KEY(userName) VALUES (?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(insertOrUpdate)) {
+	        pstmt.setString(1, reviewerName);
+	        pstmt.setString(2, experience);
+	        pstmt.executeUpdate();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public ArrayList<Answer> getReviewsForReviewer(String reviewerUserName) {
+	    ArrayList<Answer> reviews = new ArrayList<>();
+	    String query = "SELECT parentUserName, parentText, reviewText, acceptance FROM reviewDB WHERE reviewUserName = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, reviewerUserName);
+	        ResultSet rs = pstmt.executeQuery();
+	        while (rs.next()) {
+	            Answer a = new Answer();
+
+	            // Set the reviewer (who wrote the review)
+	            User reviewer = new User(reviewerUserName, "", false, false, true, false, false);
+	            a.setUser(reviewer);
+
+	            // Set the review content
+	            a.setText(rs.getString("reviewText"));
+	            a.setAcceptance(rs.getBoolean("acceptance"));
+   
+	            Question context = new Question();
+	            context.setText("[Review of answer by " + rs.getString("parentUserName") + "]: " + rs.getString("parentText"));
+	            a.setQuestion(context);
+
+	            reviews.add(a);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return reviews;
+	}
+
 
 
 	/*******
