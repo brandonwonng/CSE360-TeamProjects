@@ -1,23 +1,28 @@
 package guiPageClasses;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
-//import javafx.scene.control.Alert;	//clay edits: the alert of this not being used was annoying me
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-//import javafx.scene.control.Alert.AlertType; //clay edits: the alert of this not being used was annoying me
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import databaseClasses.Database;
-import entityClasses.Answer;
-import entityClasses.PrivateMessage;
 import entityClasses.Question;
+import entityClasses.QuestionSet;
+import entityClasses.Answer;
+import entityClasses.AnswerSet;
 import entityClasses.User;
+import entityClasses.PrivateMessage; // Noah Edit
+import javafx.scene.control.TextInputDialog; // John edit
+import java.util.Optional; // John edit
+import java.util.ArrayList; // Noah Edit
+import java.util.List;
 
 /*******
  * <p> Title: GUIReviewerHomePage Class. </p>
@@ -26,13 +31,13 @@ import entityClasses.User;
  * 
  * <p> Copyright: Lynn Robert Carter © 2025 </p>
  * 
- * @author Lynn Robert Carter
+ * @author Noah Dow
  * 
  * @version 1.00		2025-04-20 Initial version
  *  
  */
 
-public class GUIStudentHomePage {
+public class GUIReviewerHomePage {
 	
 	/**********************************************************************************************
 
@@ -45,14 +50,18 @@ public class GUIStudentHomePage {
 	private Label label_UserDetails = new Label();
 	private Button button_UpdateThisUser = new Button("Account Update");
 
-	
 	private Line line_Separator1 = new Line(20, 95, FCMainClass.WINDOW_WIDTH-20, 95);
-	
 	private Line line_Separator4 = new Line(20, 525, FCMainClass.WINDOW_WIDTH-20,525);
-	//Clay Edit
-	private Button button_AskQuestion = new Button("Question Dashboard");
-	private Button button_TrustedReviewers = new Button("Manage Trusted Reviewers");
-	private Button button_ReviewerExperiences = new Button("Reviewer Experiences");
+
+	private Button button_ViewAllQuestions = new Button("View All Questions");
+	private Button button_ViewMyReviews = new Button("View My Reviews");
+
+	private ScrollPane questionPaneScroll = new ScrollPane();
+	private Pane questionPane;
+	private QuestionSet questionSet = new QuestionSet();
+	private Question quest;
+	private Button button_ReviewerProfile = new Button("My Profile");
+
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
 
@@ -60,16 +69,15 @@ public class GUIStudentHomePage {
 	private Pane theRootPane;
 	private Database theDatabase;
 	private User theUser;
-//	private Alert alertNotImplemented = new Alert(AlertType.INFORMATION); //Clay edits: alert of it not being used was annoying me
+
 	/**********************************************************************************************
 
 	Constructors
 	
 	**********************************************************************************************/
 
-	
 	/**********
-	 * <p> Method: GUIStudentHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
+	 * <p> Method: GUIReviewerHomePage(Stage ps, Pane theRoot, Database database, User user) </p>
 	 * 
 	 * <p> Description: This method initializes all the elements of the graphical user interface.
 	 * This method determines the location, size, font, color, and change and event handlers for
@@ -85,50 +93,61 @@ public class GUIStudentHomePage {
 	 * 
 	 */
 	@SuppressWarnings("unused")
-	public GUIStudentHomePage(Stage ps, Pane theRoot, Database database, User user) {
-		GUISystemStartUpPage.theStudentHomePage = this;
+	public GUIReviewerHomePage(Stage ps, Pane theRoot, Database database, User user) {
+		GUISystemStartUpPage.theReviewerHomePage = this;
 		
-		FCMainClass.activeHomePage = 2;
+		FCMainClass.activeHomePage = 3;
 
 		primaryStage = ps;
 		theRootPane = theRoot;
 		theDatabase = database;
 		theUser = user;
 		
-		double WINDOW_WIDTH = FCMainClass.WINDOW_WIDTH;	
-		
+		double WINDOW_WIDTH = FCMainClass.WINDOW_WIDTH;
+
 		primaryStage.setTitle("CSE 360 Foundation Code: User Home Page");
 
-		// Label the window with the title and other common titles and buttons
-		
-		label_PageTitle.setText("Student Home Page");
+		label_PageTitle.setText("Reviewer Home Page");
 		setupLabelUI(label_PageTitle, "Arial", 28, WINDOW_WIDTH, Pos.CENTER, 0, 5);
 
 		label_UserDetails.setText("User: " + user.getUserName());
 		setupLabelUI(label_UserDetails, "Arial", 20, WINDOW_WIDTH, Pos.BASELINE_LEFT, 20, 55);
-		
+
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
-		button_UpdateThisUser.setOnAction((event) -> {performUpdate(); });
-		//Clay Edits
-		setupButtonUI(button_AskQuestion, "Dialog", 18, 190, Pos.CENTER, 20, 110);
-	   	button_AskQuestion.setOnAction((event) -> {goToQuestions(); });
+		button_UpdateThisUser.setOnAction((event) -> { performUpdate(); });
 
-		setupButtonUI(button_TrustedReviewers, "Dialog", 18, 190, Pos.CENTER, 20, 150);
-	    	button_TrustedReviewers.setOnAction((event) -> {goToTrustedReviewers(); });
-	    	
-	    setupButtonUI(button_ReviewerExperiences, "Dialog", 18, 190, Pos.CENTER, 20, 190);
-	    	button_ReviewerExperiences.setOnAction((event) -> { showReviewerExperiences(); });
+		setupButtonUI(button_ViewAllQuestions, "Dialog", 18, 150, Pos.CENTER, 20, 110);
+		button_ViewAllQuestions.setOnAction((event) -> { seeAllQuestions(); });
 
-        setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
-        button_Logout.setOnAction((event) -> {performLogout(); });
-        
-        setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
-        button_Quit.setOnAction((event) -> {performQuit(); });
-        
-        setup();
+		//NOAH EDITS: 
+		setupButtonUI(button_ViewMyReviews, "Dialog", 18, 150, Pos.CENTER, 20, 150);
+		button_ViewMyReviews.setOnAction((event) -> { seeMyReviews(); });
+
+		questionPane = new Pane();
+		questionPane.setLayoutX(WINDOW_WIDTH / 2 - 100);
+		questionPane.setLayoutY(100);
+
+		questionPaneScroll.setContent(questionPane);
+		questionPaneScroll.setLayoutX(WINDOW_WIDTH / 2 - 100);
+		questionPaneScroll.setLayoutY(100);
+		questionPaneScroll.setMaxSize(WINDOW_WIDTH / 2 + 100, 360);
+		questionPaneScroll.setMinSize(WINDOW_WIDTH / 2 + 100, 360);
+		
+		setupButtonUI(button_ReviewerProfile, "Dialog", 18, 150, Pos.CENTER, 20, 190);
+		button_ReviewerProfile.setOnAction((event) -> { showReviewerProfile(); });
+
+
+		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
+		button_Logout.setOnAction((event) -> { performLogout(); });
+
+		setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
+		button_Quit.setOnAction((event) -> { performQuit(); });
+
+		loadQuestionsFromDatabase();
+
+		setup();
 	}
 
-	
 	/**********
 	 * <p> Method: setup() </p>
 	 * 
@@ -138,22 +157,25 @@ public class GUIStudentHomePage {
 	 */
 	public void setup() {
 		theRootPane.getChildren().clear();		
-	    theRootPane.getChildren().addAll(
-			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-	        line_Separator4, 
-	        button_AskQuestion,//Clay Edit
-		button_TrustedReviewers,
-		button_ReviewerExperiences,
-	        button_Logout,
-	        button_Quit
-	    );
-			
+		theRootPane.getChildren().addAll(
+			label_PageTitle,
+			label_UserDetails,
+			button_UpdateThisUser,
+			button_ViewAllQuestions,
+			button_ViewMyReviews, // NOAH EDITS
+			button_ReviewerProfile, //BRANDON EDIT
+			line_Separator1,
+			line_Separator4,
+			questionPaneScroll,
+			button_Logout,
+			button_Quit
+		);
+		questionPane.getChildren().clear();
 	}
-	
+
 	/**********
 	 * Private local method to initialize the standard fields for a label
 	 */
-	
 	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
 		l.setFont(Font.font(ff, f));
 		l.setMinWidth(w);
@@ -161,8 +183,7 @@ public class GUIStudentHomePage {
 		l.setLayoutX(x);
 		l.setLayoutY(y);		
 	}
-	
-	
+
 	/**********
 	 * Private local method to initialize the standard fields for a button
 	 * 
@@ -182,145 +203,237 @@ public class GUIStudentHomePage {
 		b.setLayoutY(y);		
 	}
 
-	
 	/**********************************************************************************************
 
 	User Interface Actions for this page
 	
 	**********************************************************************************************/
-	
+
 	private void performUpdate () {
 		if (GUISystemStartUpPage.theUserUpdatePage == null)
 			GUISystemStartUpPage.theUserUpdatePage = 
 				new GUIUserUpdatePage(primaryStage, theRootPane, theDatabase, theUser);
 		else
 			GUISystemStartUpPage.theUserUpdatePage.setup();	
-	}	
+	}
 
-	
 	private void performLogout() {
 		GUISystemStartUpPage.theSystemStartupPage.setup();
 	}
-	//Clay edits
-	private void goToQuestions() {
-		if (GUISystemStartUpPage.theStudentQuestionPage == null)
-			GUISystemStartUpPage.theStudentQuestionPage = 
-				new GUIStudentQuestionPage(primaryStage, theRootPane, theDatabase, theUser);
-		else
-			GUISystemStartUpPage.theStudentQuestionPage.setup(theUser);//Clay Edit
-	}
-	
-	private void goToTrustedReviewers() {
-		if (GUISystemStartUpPage.theStudentTrustedReviewerPage == null)
-			GUISystemStartUpPage.theStudentTrustedReviewerPage = 
-				new GUIStudentTrustedReviewerPage(primaryStage, theRootPane, theDatabase, theUser);
-		else
-			GUISystemStartUpPage.theStudentTrustedReviewerPage.setup(theUser);
-	}
-	
-	private void showReviewerExperiences() {
-	    theRootPane.getChildren().clear();
-
-	    Label header = new Label("Reviewer Experience Profiles");
-	    setupLabelUI(header, "Arial", 24, 600, Pos.CENTER, 100, 20);
-
-	    List<String> reviewers = theDatabase.getUserList();
-	    int yOffset = 70;
-
-	    for (String reviewer : reviewers) {
-	        if (reviewer.equals("<Select a User>")) continue;
-
-	        String exp = theDatabase.getReviewerExperience(reviewer);
-	        if (exp != null && !exp.trim().isEmpty()) {
-	            Label nameLabel = new Label(reviewer + ":");
-	            setupLabelUI(nameLabel, "Arial", 16, 600, Pos.BASELINE_LEFT, 40, yOffset);
-
-	            Label expLabel = new Label(exp);
-	            setupLabelUI(expLabel, "Arial", 14, 600, Pos.BASELINE_LEFT, 60, yOffset + 25);
-
-	            Button viewReviewsBtn = new Button("View Reviews");
-	            setupButtonUI(viewReviewsBtn, "Dialog", 12, 150, Pos.CENTER, 60, yOffset + 60);
-	            final String reviewerFinal = reviewer;
-	            viewReviewsBtn.setOnAction(e -> {
-	                showReviewsByReviewer(reviewerFinal);
-	            });
-
-	            theRootPane.getChildren().addAll(nameLabel, expLabel, viewReviewsBtn);
-	            yOffset += 110;
-	        }
-	    }
-
-	    Button backButton = new Button("Back");
-	    setupButtonUI(backButton, "Dialog", 16, 120, Pos.CENTER, 20, 540);
-	    backButton.setOnAction(e -> setup());
-
-	    theRootPane.getChildren().addAll(header, backButton);
-	}
-	
-	private void showReviewsByReviewer(String reviewerUserName) {
-	    theRootPane.getChildren().clear();
-
-	    Label header = new Label("Reviews by " + reviewerUserName);
-	    setupLabelUI(header, "Arial", 24, 600, Pos.CENTER, 100, 20);
-
-	    int yOffset = 70;
-	    boolean foundAny = false;
-
-	    ArrayList<Answer> reviews = theDatabase.getReviewsForReviewer(reviewerUserName);
-	    
-	    if (reviews.isEmpty()) {
-	        Label none = new Label("No reviews found for this reviewer.");
-	        setupLabelUI(none, "Arial", 14, 600, Pos.CENTER, 100, 70);
-	        theRootPane.getChildren().add(none);
-	    } else {
-	        int yOffset1 = 70;
-	        for (Answer review : reviews) {
-	            String context = (review.getQuestion() != null) ? review.getQuestion().getText() : "";
-	            Label reviewLabel = new Label(context + "\nReview: " + review.getText());
-	            setupLabelUI(reviewLabel, "Arial", 14, 700, Pos.BASELINE_LEFT, 40, yOffset1);
-	            theRootPane.getChildren().add(reviewLabel);
-	            yOffset1 += 40;
-
-	            // Show private feedback messages sent about this review
-	            ArrayList<PrivateMessage> messages = theDatabase.getPrivateMessages(reviewerUserName);
-	            System.out.println("Retrieved " + messages.size() + " messages for " + reviewerUserName);
-	            for (PrivateMessage pm : messages) {
-	                System.out.println("From: " + pm.getSender().getUserName() + ", Content: " + pm.getContent() + ", Parent: " + pm.getParentText());
-	            
-	                if (pm.getParentText().equals(review.getText())) {
-	                    Label messageLabel = new Label("    → Feedback from " + pm.getSender().getUserName() + ": " + pm.getContent());
-	                    setupLabelUI(messageLabel, "Arial", 13, 700, Pos.BASELINE_LEFT, 60, yOffset1);
-	                    theRootPane.getChildren().add(messageLabel);
-	                    yOffset1 += 25;
-	                }
-	            
-	           }
-
-
-	            yOffset1 += 20; // spacing between review blocks
-	        }
-
-	    }
-
-	    if (!foundAny) {
-	        Label none = new Label("No reviews found for this reviewer.");
-	        setupLabelUI(none, "Arial", 14, 600, Pos.CENTER, 100, yOffset);
-	        theRootPane.getChildren().add(none);
-	    }
-
-	    Button backButton = new Button("Back");
-	    setupButtonUI(backButton, "Dialog", 16, 120, Pos.CENTER, 20, 540);
-	    backButton.setOnAction(e -> showReviewerExperiences());
-
-	    theRootPane.getChildren().addAll(header, backButton);
-	}
-
-
-
-
-
 
 	private void performQuit() {
 		System.exit(0);
 	}
+
+	private void loadQuestionsFromDatabase() {
+		questionSet = new QuestionSet();
+		for (Question q : theDatabase.getAllQuestions()) {
+			questionSet.addQuestion(q);
+		}
+	}
+
+	private void seeAllQuestions() {
+		/*This method populates all questions that have been asked as well as a button linked 
+		 * to view the answers/responses of each of the questions*/
+
+		questionPane.getChildren().clear();
+		Text text;
+		Button button;
+
+		for (int i = 0; i < questionSet.getNumQuestions(); i++) {
+			quest = questionSet.getQuestion(i);
+
+			text = new Text(quest.getText());
+			text.setLayoutX(100);
+			text.setLayoutY(23 + (i * 30));
+
+			button = new Button("See Replies");
+			setupButtonUI(button, "Dialog", 10, 0, Pos.CENTER, 0, 10 + (i * 30));
+			button.setOnAction((event) -> {
+				Button but = (Button) event.getSource();
+				viewQuestionAnswers(questionSet.getQuestion(((int)but.getLayoutY() / 30)));
+			});
+
+			questionPane.getChildren().addAll(text, button);
+		}
+	}
+
+	//NOAH EDITS:
+	private void seeMyReviews() {
+	    //Always reload latest questions/answers so private feedback is current!
+	    loadQuestionsFromDatabase();
+
+	    questionPane.getChildren().clear();
+	    ArrayList<Answer> myReviews = getAllReviewsByReviewer(theUser);
+	    int yOffset = 20;
+
+	    if (myReviews == null || myReviews.size() == 0) {
+	        Text noReviews = new Text("You have not written any reviews yet.");
+	        noReviews.setLayoutX(20);
+	        noReviews.setLayoutY(yOffset);
+	        questionPane.getChildren().add(noReviews);
+	        return;
+	    }
+
+	    for (int i = 0; i < myReviews.size(); i++) {
+	        Answer review = myReviews.get(i);
+		    
+	        List<PrivateMessage> feedbacks = review.getPrivateMessages();
+	        int feedbackCount = (feedbacks != null) ? feedbacks.size() : 0;
+
+	        String reviewSummary = String.format(
+	            "Review on Q: %s\nYour Review: %s\nPrivate Feedback Messages: %d",
+	            review.getQuestion().getText(),
+	            review.getText(),
+	            feedbackCount
+	        );
+
+	        Text reviewText = new Text(reviewSummary);
+	        reviewText.setLayoutX(20);
+	        reviewText.setLayoutY(yOffset + i * 80);
+
+	        Button viewFeedbackBtn = new Button("View Feedback");
+	        setupButtonUI(viewFeedbackBtn, "Dialog", 12, 130, Pos.CENTER, 400, yOffset - 10 + i * 80);
+	        final Answer reviewFinal = review;
+	        viewFeedbackBtn.setOnAction(e -> {
+	            seeMessagesForReview(reviewFinal);
+	        });
+
+	        questionPane.getChildren().addAll(reviewText, viewFeedbackBtn);
+	    }
+	}
+
+	//BRANDON EDIT
+	private ArrayList<Answer> getAllReviewsByReviewer(User reviewer) {
+	    ArrayList<Answer> allReviews = new ArrayList<>();
+	    for (int q = 0; q < questionSet.getNumQuestions(); q++) {
+	        Question question = questionSet.getQuestion(q);
+	        AnswerSet answerSet = question.getAnswers();
+	        for (int a = 0; a < answerSet.getNumAnswers(); a++) {
+	            Answer answer = answerSet.getAnswer(a);
+	            ArrayList<Answer> reviews = theDatabase.getReviewsForAnswer(answer.getUser().getUserName(), answer.getText());
+	            for (Answer review : reviews) {
+	                if (review.getUser() != null && review.getUser().getUserName().equals(reviewer.getUserName())) {
+	                    review.setQuestion(question);
+	                    answer.addReview(review);     
+	                    allReviews.add(review);
+	                }
+	            }
+	        }
+	    }
+	    return allReviews;
+	}
+
+
+	//NOAH EDITS
+	private void seeMessagesForReview(Answer review) {
+	    questionPane.getChildren().clear();
+
+	    List<PrivateMessage> feedbacks = review.getPrivateMessages();
+
+	    int yOffset = 85;
+
+	    Text header = new Text("Private Feedback for Your Review:");
+	    header.setLayoutX(20);
+	    header.setLayoutY(30);
+	    questionPane.getChildren().add(header);
+
+	    Text reviewText = new Text(review.getText());
+	    reviewText.setLayoutX(40);
+	    reviewText.setLayoutY(55);
+	    questionPane.getChildren().add(reviewText);
+
+	    if (feedbacks == null || feedbacks.size() == 0) {
+	        Text none = new Text("No private feedback yet.");
+	        none.setLayoutX(20);
+	        none.setLayoutY(yOffset);
+	        questionPane.getChildren().add(none);
+	        return;
+	    }
+
+	    for (int i = 0; i < feedbacks.size(); i++) {
+	        PrivateMessage pm = feedbacks.get(i);
+	        Text pmText = new Text(String.format("[%s]: %s", pm.getSender().getUserName(), pm.getContent()));
+	        pmText.setLayoutX(20);
+	        pmText.setLayoutY(yOffset + i * 30);
+	        questionPane.getChildren().add(pmText);
+	    }
+	}
+
+
+    // John edit - method to write a review for an answer
+    private void viewQuestionAnswers(Question q) {
+
+        questionPane.getChildren().clear();
+
+        AnswerSet replies = q.getAnswers();
+        Answer ans;
+
+        for (int i = 0; i < replies.getNumAnswers(); i++) {
+                ans = replies.getAnswer(i);
+                String answerDisplay = String.format("[%s]: %s", ans.getUser().getUserName(), ans.getText());
+
+                Text text = new Text(answerDisplay);
+                text.setLayoutX(0);
+                text.setLayoutY(30 + (i * 40));
+
+                Button writeReview = new Button("Write Review");
+                setupButtonUI(writeReview, "Dialog", 12, 0, Pos.CENTER_LEFT, 300, 15 + (i * 40));
+                final Answer currentAnswer = ans;
+                writeReview.setOnAction(evt -> {
+                        TextInputDialog dialog = new TextInputDialog();
+                        dialog.setTitle("Write Review");
+                        dialog.setHeaderText("Enter your review text");
+                        Optional<String> result = dialog.showAndWait();
+                        result.ifPresent(reviewText -> {
+                                Answer rev = new Answer();
+                                rev.setUser(theUser);
+                                rev.setQuestion(currentAnswer.getQuestion());
+                                rev.setText(reviewText);
+                                currentAnswer.addReview(rev);
+                                theDatabase.addReview(currentAnswer.getUser().getUserName(),
+                                                currentAnswer.getText(), theUser.getUserName(), reviewText);
+                        });
+                });
+
+                questionPane.getChildren().addAll(text, writeReview);
+        }
+    }
+    
+    private void showReviewerProfile() {
+        questionPane.getChildren().clear();
+
+        String experience = theDatabase.getReviewerExperience(theUser.getUserName());
+
+        Text header = new Text("My Reviewer Profile");
+        header.setLayoutX(20);
+        header.setLayoutY(30);
+
+        Text expLabel = new Text("Experience:");
+        expLabel.setLayoutX(20);
+        expLabel.setLayoutY(60);
+
+        TextArea experienceArea = new TextArea(experience);
+        experienceArea.setLayoutX(20);
+        experienceArea.setLayoutY(80);
+        experienceArea.setPrefSize(500, 100);
+
+        Button saveBtn = new Button("Save");
+        setupButtonUI(saveBtn, "Dialog", 14, 100, Pos.CENTER, 20, 190);
+        saveBtn.setOnAction(e -> {
+            String newExp = experienceArea.getText();
+            theDatabase.saveReviewerExperience(theUser.getUserName(), newExp);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Profile Saved");
+            alert.setHeaderText(null);
+            alert.setContentText("Your experience profile has been saved!");
+            alert.showAndWait();
+        });
+
+
+        questionPane.getChildren().addAll(header, expLabel, experienceArea, saveBtn);
+    }
+
+
 }
