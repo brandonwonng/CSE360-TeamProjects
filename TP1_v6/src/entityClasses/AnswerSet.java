@@ -40,6 +40,10 @@ public class AnswerSet {
 	        answers.remove(currentAnswer);
 	    }
 	}
+	public ArrayList<Answer> getAllAnswers() {
+	    return answers;
+	}
+
 
 	
 //	//Filter the presented set of questions
