@@ -1,7 +1,6 @@
 package guiPageClasses;
 
 import java.util.Optional;
-
 import applicationMainMethodClasses.FCMainClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -14,6 +13,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.scene.control.TextField; // John: added for text input dialog
 import databaseClasses.Database;
 import entityClasses.User;
 import entityClasses.Question;
@@ -80,13 +80,16 @@ public class GUIStudentQuestionPage {
 
 	private Button button_Logout = new Button("Logout");
 	private Button button_Quit = new Button("Quit");
+	
+    // John: Search field and button for locating questions or reviewers
+    private TextField searchField = new TextField();
+    private Button button_Search = new Button("Search");
 
 	private Stage thePrimaryStage;
 	private Pane theRootPane;
 	private Pane questionPane;
 	private Database theDatabase;
 	private User theUser;
-	
 	
 	Optional<String> result;
 
@@ -140,10 +143,14 @@ public class GUIStudentQuestionPage {
 		//Set the stage title
 		thePrimaryStage.setTitle("CSE 360 Foundation Code: Student Question Page");
 		
-		label_PageTitle.setText("Student Question Page");
-		setupLabelUI(label_PageTitle, "Arial", 28, WINDOW_WIDTH, Pos.CENTER, 0, 5);
-		
-		setupLabelUI(label_Purpose, "Arial", 10, WINDOW_WIDTH, Pos.CENTER, 0, 35);
+        label_PageTitle.setText("Student Question Page");
+        setupLabelUI(label_PageTitle, "Arial", 28, WINDOW_WIDTH, Pos.CENTER, 0, 5);
+
+        setupLabelUI(label_Purpose, "Arial", 10, WINDOW_WIDTH, Pos.CENTER, 0, 35);
+
+        setupTextUI(searchField, "Dialog", 14, 200, Pos.BASELINE_LEFT, 20, 65, true);
+        setupButtonUI(button_Search, "Dialog", 14, 80, Pos.CENTER, 230, 65);
+        button_Search.setOnAction((event) -> {performSearch();});
 		
 		//Set up for all main buttons on the page
 		setupButtonUI(button_ViewAllQuestions, "Dialog", 18, 150, 
@@ -243,9 +250,11 @@ public class GUIStudentQuestionPage {
         // Place all of the just-initialized GUI elements into the pane
         theRoot.getChildren().clear();
         theRoot.getChildren().addAll(label_PageTitle,
-        		questionPaneScroll,
-           		label_Purpose,
-        		button_BackToHomePage, 
+                questionPaneScroll,
+                label_Purpose,
+                searchField,
+                button_Search,
+                button_BackToHomePage,
         		button_ViewAllQuestions,
         		button_ViewUnresolved,
 			button_ViewResolved,
@@ -268,11 +277,13 @@ public class GUIStudentQuestionPage {
 	public void setup(User user) {
 		theUser = user; //Clay Edit
 		loadQuestionsFromDatabase(); // John edit: load questions from the database
-		theRootPane.getChildren().clear();
-		theRootPane.getChildren().addAll(label_PageTitle,
-        		questionPaneScroll,
-           		label_Purpose,
-        		button_BackToHomePage, 
+        theRootPane.getChildren().clear();
+        theRootPane.getChildren().addAll(label_PageTitle,
+                        questionPaneScroll,
+                        label_Purpose,
+                        searchField,
+                        button_Search,
+                        button_BackToHomePage,
         		button_ViewAllQuestions,
         		button_ViewUnresolved,
 			button_ViewResolved,
@@ -325,6 +336,8 @@ public class GUIStudentQuestionPage {
 	/**********
 	 * Private local method to initialize the standard fields for a text field
 	 *
+	User Interface Actions for this page
+	**********************************************************************************************/
 	private void setupTextUI(TextField t, String ff, double f, double w, Pos p, double x, double y, boolean e){
 		t.setFont(Font.font(ff, f));
 		t.setMinWidth(w);
@@ -334,12 +347,6 @@ public class GUIStudentQuestionPage {
 		t.setLayoutY(y);		
 		t.setEditable(e);
 	}	
-	
-	/**********************************************************************************************
-
-	User Interface Actions for this page
-	
-	**********************************************************************************************/
 	
 	private void goToUserHomePage() {
 	    String role = theUser.getRole(); // You might use getRoleName(), or getUserRole(), etc.
@@ -930,5 +937,109 @@ public class GUIStudentQuestionPage {
   		
   		return;	
   		}
+	
+	/**********
+	 * John edit 
+	 * <p> Method: performSearch() </p>
+	 * 
+	 * <p> Description: This method retrieves the search term entered in the searchField and 
+	 * executes a search across three categories: answered questions, unanswered questions, 
+	 * and reviewer usernames. If the search term matches any text content, corresponding 
+	 * GUI elements are dynamically created and displayed in the questionPane. </p>
+	 * 
+	 * <p> The method adds headers to visually group the results and displays interactive buttons 
+	 * for each matching question that allow users to view corresponding replies. If no matches 
+	 * are found, a "No results found" message is displayed. </p>
+	 * 
+	 */
+	private void performSearch() {
+	    String term = searchField.getText().toLowerCase();
+	    questionPane.getChildren().clear();
 
+	    int y = 0;
+
+	    // Search answered questions
+	    QuestionSet answered = questionSet.filterQuestions(true);
+	    boolean any = false;
+	    for (int i = 0; i < answered.getNumQuestions(); i++) {
+	            Question q = answered.getQuestion(i);
+	            if (q.getText().toLowerCase().contains(term)) {
+	                    if (!any) {
+	                            Text header = new Text("Answered Questions:");
+	                            header.setLayoutX(0);
+	                            header.setLayoutY(y);
+	                            questionPane.getChildren().add(header);
+	                            y += 20;
+	                            any = true;
+	                    }
+	                    Text t = new Text(q.getText());
+	                    t.setLayoutX(100);
+	                    t.setLayoutY(y + 13);
+	                    Button b = new Button("See Replies");
+	                    setupButtonUI(b, "Dialog", 10, 0, Pos.CENTER, 0, y);
+	                    Question target = q;
+	                    b.setOnAction(e -> viewQuestionAnswers(target));
+	                    questionPane.getChildren().addAll(t, b);
+	                    y += 30;
+	            }
+	    }
+
+	    // Search unanswered questions
+	    QuestionSet unresolved = questionSet.filterQuestions(false);
+	    any = false;
+	    for (int i = 0; i < unresolved.getNumQuestions(); i++) {
+	            Question q = unresolved.getQuestion(i);
+	            if (q.getText().toLowerCase().contains(term)) {
+	                    if (!any) {
+	                            Text header = new Text("Unanswered Questions:");
+	                            header.setLayoutX(0);
+	                            header.setLayoutY(y);
+	                            questionPane.getChildren().add(header);
+	                            y += 20;
+	                            any = true;
+	                    }
+	                    Text t = new Text(q.getText());
+	                    t.setLayoutX(100);
+	                    t.setLayoutY(y + 13);
+	                    Button b = new Button("See Replies");
+	                    setupButtonUI(b, "Dialog", 10, 0, Pos.CENTER, 0, y);
+	                    Question target = q;
+	                    b.setOnAction(e -> viewQuestionAnswers(target));
+	                    questionPane.getChildren().addAll(t, b);
+	                    y += 30;
+	            }
+	    }
+
+	    // Search reviewers
+	    ArrayList<String> users = (ArrayList<String>) theDatabase.getUserList();
+	    any = false;
+	    for (String userName : users) {
+	            if (userName.equals("<Select a User>")) continue;
+	            theDatabase.getUserAccountDetails(userName);
+	            if (theDatabase.getCurrentReviewerRole() && userName.toLowerCase().contains(term)) {
+	                    if (!any) {
+	                            Text header = new Text("Reviewers:");
+	                            header.setLayoutX(0);
+	                            header.setLayoutY(y);
+	                            questionPane.getChildren().add(header);
+	                            y += 20;
+	                            any = true;
+	                    }
+	                    Text t = new Text(userName);
+	                    t.setLayoutX(100);
+	                    t.setLayoutY(y + 13);
+	                    questionPane.getChildren().add(t);
+	                    y += 30;
+	            }
+	    }
+
+	    if (y == 0) {
+	            Text none = new Text("No results found.");
+	            none.setLayoutX(0);
+	            none.setLayoutY(20);
+	            questionPane.getChildren().add(none);
+	    }
+	    
+	}
+	
 }
