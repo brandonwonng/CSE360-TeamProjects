@@ -132,7 +132,7 @@ public class GUIFacultyDashPage {
 		label_PageTitle.setText("Faculty Dashboard");
 		setupLabelUI(label_PageTitle, "Arial", 28, WINDOW_WIDTH, Pos.CENTER, 0, 5);
 
-		label_UserDetails.setText("User: " + user.getUserName());
+		
 		setupLabelUI(label_UserDetails, "Arial", 20, WINDOW_WIDTH, Pos.BASELINE_LEFT, 20, 55);
 		
 		if(theUser.getInstructorRole()) {
@@ -183,6 +183,8 @@ public class GUIFacultyDashPage {
 	public void setup(User user) {
 		theUser = user;
 		theRootPane.getChildren().clear();		
+		messagePane.getChildren().clear();
+		label_UserDetails.setText("User: " + user.getUserName());
 	    theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, line_Separator1,
 	        line_Separator4, 
@@ -193,7 +195,20 @@ public class GUIFacultyDashPage {
 	        button_Logout,
 	        button_Quit
 	    );
-	    if(theUser.getInstructorRole()) {
+	    if(user.getInstructorRole()) {				
+				setupButtonUI(button_createNewWorkRequest, "Dialog", 18, 250, Pos.CENTER, 20, 290);
+				
+				TextInputDialog dialogNewWork = new TextInputDialog();
+				dialogNewWork.setTitle("Enter your request");
+				dialogNewWork.setHeaderText("Enter your request");
+				
+				button_createNewWorkRequest.setOnAction((event) -> {result = dialogNewWork.showAndWait();
+				if(result.isPresent()) {
+					theDatabase.createWorkRequest(theUser.getUserName(), result.get());
+					dialogNewWork.getEditor().clear();
+				}
+				});
+				
 	    	theRootPane.getChildren().add(button_createNewWorkRequest);
 	    }
 	}
